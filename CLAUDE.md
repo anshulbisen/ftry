@@ -289,6 +289,62 @@ bun run test:all
 bun run build:all
 ```
 
+### Claude Code Hooks
+
+This project uses **Claude Code hooks** to automatically enforce standards and provide helpful context.
+
+**Configured Hooks**:
+
+1. **Bash Command Validator** (`PreToolUse` on Bash tool)
+   - Blocks wrong package managers (npm, yarn, pnpm, node)
+   - Warns about suboptimal patterns (`bun nx` → `nx`, bash commands → specialized tools)
+   - Prevents git anti-patterns (--no-verify, --force)
+
+2. **Tooling Context Injector** (`SessionStart`)
+   - Automatically injects project standards at session start
+   - Reminds about bun, nx commands, quality tools, commit format
+   - No manual reminders needed!
+
+3. **Code Quality Reminder** (`PostToolUse` on Write/Edit)
+   - Suggests quality checks after file modifications
+   - Context-aware (different suggestions for code, tests, configs)
+   - Non-blocking reminders
+
+**Hook Configuration**: `.claude/settings.json`
+**Hook Scripts**: `.claude/hooks/`
+**Documentation**: `.claude/hooks/README.md`
+
+**Testing Hooks Manually**:
+
+```bash
+# Test bash validator
+echo '{"tool_name":"Bash","tool_input":{"command":"npm install"}}' | .claude/hooks/validate-bash.py
+
+# Test context injection
+echo '{"hook_event_name":"SessionStart"}' | .claude/hooks/add-tooling-context.py
+
+# Test quality reminder
+echo '{"tool_name":"Write","tool_input":{"file_path":"src/test.ts"}}' | .claude/hooks/check-code-quality.py
+```
+
+**Debugging Hooks**:
+
+```bash
+# See detailed hook execution
+claude --debug
+
+# Review hook configuration
+# In Claude Code, use: /hooks
+```
+
+**Modifying Hooks**:
+
+1. Edit Python script in `.claude/hooks/`
+2. Test manually with sample input
+3. Reload Claude Code or review in `/hooks` menu
+
+See `.claude/hooks/README.md` for detailed hook documentation.
+
 ## Project Structure
 
 ```
