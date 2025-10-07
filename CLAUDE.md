@@ -8,13 +8,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Target Market**: Indian salon and spa businesses, initially focusing on Pune and expanding to other Indian cities.
 
-**Current Stage**: Early planning phase with comprehensive blueprints and roadmaps documented in `knowlege-base/` directory.
+**Current Stage**: Development phase - Nx monorepo initialized with React frontend and NestJS backend applications.
 
-## Tech Stack (Planned)
+## Tech Stack
 
-- **Frontend**: React
-- **Backend**: NestJS (Node.js)
-- **Architecture**: Nx monorepo for managing multiple apps and shared libraries
+- **Frontend**: React 19 with Vite bundler
+- **Backend**: NestJS 11 with Webpack
+- **Architecture**: Nx 21.6.3 monorepo with shared libraries
+- **Testing**: Vitest for frontend, Jest for backend and libraries
+- **Code Quality**: ESLint, Prettier
+- **TypeScript**: 5.9.2 across the stack
 - **Database**: PostgreSQL (planned for structured data)
 - **Infrastructure**: Cloud-based (AWS/GCP/Azure with managed services)
 - **Development Approach**: Microservices-ready modular architecture, starting with monolith
@@ -78,20 +81,49 @@ This project follows a **lean, iterative, customer-focused approach**:
 - Use environment variables for configuration
 - Follow consistent code formatting (ESLint, Prettier)
 
-## Project Structure (Future)
+## Project Structure
 
 ```
 /apps
-  /frontend          # React application
-  /backend           # NestJS application
+  /frontend          # React 19 application with Vite
+  /backend           # NestJS 11 application with Webpack
+  /backend-e2e       # End-to-end tests for backend
 /libs
   /shared
-    /models          # Shared data models/types
-    /utils           # Common utilities
-  /features
-    /appointments    # Appointment-related code
-    /clients         # Client management
-    /billing         # POS and billing
+    /types           # Shared data models/types (@ftry/shared/types)
+    /utils           # Common utilities (@ftry/shared/utils)
+  /features          # Feature libraries (to be created)
+    /appointments    # Appointment-related code (future)
+    /clients         # Client management (future)
+    /billing         # POS and billing (future)
+```
+
+## Available Commands
+
+```bash
+# Development
+nx serve frontend      # Start React frontend dev server
+nx serve backend       # Start NestJS backend dev server
+
+# Build
+nx build frontend      # Build frontend for production
+nx build backend       # Build backend for production
+nx run-many -t build   # Build all projects
+
+# Testing
+nx test frontend       # Run frontend tests with Vitest
+nx test backend        # Run backend tests with Jest
+nx test types          # Run shared types tests
+nx test utils          # Run shared utils tests
+
+# Linting
+nx lint frontend       # Lint frontend code
+nx lint backend        # Lint backend code
+
+# Generate
+nx g @nx/react:component --project=frontend    # Generate React component
+nx g @nx/nest:resource --project=backend       # Generate NestJS resource
+nx g @nx/js:lib --directory=libs/features      # Generate shared library
 ```
 
 ## Reference Documents
