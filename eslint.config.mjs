@@ -13,12 +13,50 @@ export default [
       '@nx/enforce-module-boundaries': [
         'error',
         {
-          enforceBuildableLibDependency: true,
+          enforceBuildableLibDependency: false, // We don't use buildable libs
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
+            // Feature libraries can depend on anything
             {
-              sourceTag: '*',
+              sourceTag: 'type:feature',
               onlyDependOnLibsWithTags: ['*'],
+            },
+            // UI libraries can only depend on UI and util libraries
+            {
+              sourceTag: 'type:ui',
+              onlyDependOnLibsWithTags: ['type:ui', 'type:util'],
+            },
+            // Data-access libraries can only depend on data-access and util libraries
+            {
+              sourceTag: 'type:data-access',
+              onlyDependOnLibsWithTags: ['type:data-access', 'type:util'],
+            },
+            // Util libraries can only depend on other util libraries
+            {
+              sourceTag: 'type:util',
+              onlyDependOnLibsWithTags: ['type:util'],
+            },
+            // Shared scope can be used by anyone
+            {
+              sourceTag: 'scope:shared',
+              onlyDependOnLibsWithTags: ['*'],
+            },
+            // Domain-specific scopes can use shared libraries
+            {
+              sourceTag: 'scope:appointments',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:appointments'],
+            },
+            {
+              sourceTag: 'scope:clients',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:clients'],
+            },
+            {
+              sourceTag: 'scope:billing',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:billing'],
+            },
+            {
+              sourceTag: 'scope:staff',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:staff'],
             },
           ],
         },

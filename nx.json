@@ -45,6 +45,18 @@
       }
     }
   ],
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/jest.config.[jt]s",
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.js"
+    ],
+    "sharedGlobals": []
+  },
   "generators": {
     "@nx/react": {
       "application": {
@@ -58,7 +70,26 @@
       },
       "library": {
         "style": "css",
-        "linter": "none"
+        "linter": "none",
+        "bundler": "none",
+        "unitTestRunner": "vitest",
+        "buildable": false,
+        "publishable": false
+      }
+    },
+    "@nx/nest": {
+      "library": {
+        "buildable": false,
+        "publishable": false,
+        "testEnvironment": "node"
+      }
+    },
+    "@nx/js": {
+      "library": {
+        "bundler": "none",
+        "unitTestRunner": "vitest",
+        "buildable": false,
+        "publishable": false
       }
     }
   },
@@ -66,7 +97,27 @@
     "@nx/js:tsc": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": ["default", "^default"]
+      "inputs": ["production", "^production"]
+    },
+    "build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    },
+    "test": {
+      "cache": true,
+      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"]
+    },
+    "lint": {
+      "cache": true,
+      "inputs": ["default", "{workspaceRoot}/.eslintrc.json", "{workspaceRoot}/eslint.config.mjs"]
+    },
+    "typecheck": {
+      "cache": true,
+      "inputs": ["production", "^production"]
     }
+  },
+  "affected": {
+    "defaultBase": "main"
   }
 }

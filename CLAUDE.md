@@ -345,6 +345,129 @@ claude --debug
 
 See `.claude/hooks/README.md` for detailed hook documentation.
 
+## Nx Monorepo Architecture
+
+This project follows Nx best practices for optimal build performance and maintainability.
+
+### Core Principles
+
+1. **Non-Buildable Libraries**: All libraries are NON-BUILDABLE by default. Only applications have build targets. Libraries are directly bundled into apps.
+2. **Small, Focused Libraries**: Smaller libraries = more granular affected detection = faster builds
+3. **Type-Based Organization**: Every library has a type (feature, ui, data-access, util) with enforced dependency rules
+4. **Clear Module Boundaries**: ESLint enforces dependency constraints based on tags
+
+### Library Types
+
+**Four main types with specific purposes:**
+
+1. **Feature (`type:feature`)** - Smart components with business logic
+   - Can depend on: ANY library type
+   - Location: `libs/[scope]/feature-[name]`
+   - Example: `libs/appointments/feature-booking`
+
+2. **UI (`type:ui`)** - Presentational components only
+   - Can depend on: UI and util libraries ONLY
+   - Location: `libs/[scope]/ui-[name]` or `libs/shared/ui-[name]`
+   - Example: `libs/shared/ui-components`
+
+3. **Data-Access (`type:data-access`)** - API services and state management
+   - Can depend on: data-access and util libraries ONLY
+   - Location: `libs/[scope]/data-access`
+   - Example: `libs/appointments/data-access`
+
+4. **Util (`type:util`)** - Pure functions and utilities
+   - Can depend on: OTHER util libraries ONLY
+   - Location: `libs/shared/util-[name]`
+   - Example: `libs/shared/util-formatters`
+
+### Creating New Libraries
+
+**Before creating, ask:**
+
+- Is this code reused in multiple places?
+- Does this represent a distinct concern?
+- What type is this (feature, ui, data-access, util)?
+
+**Generate commands (always non-buildable):**
+
+```bash
+# Feature library (React)
+nx g @nx/react:library feature-[name] \
+  --directory=libs/[scope]/feature-[name] \
+  --tags=type:feature,scope:[scope] \
+  --bundler=none \
+  --unitTestRunner=vitest
+
+# UI library (React)
+nx g @nx/react:library ui-[name] \
+  --directory=libs/[scope]/ui-[name] \
+  --tags=type:ui,scope:[scope] \
+  --bundler=none \
+  --unitTestRunner=vitest
+
+# Data-access library (NestJS backend)
+nx g @nx/nest:library data-access-[name] \
+  --directory=libs/[scope]/data-access-[name] \
+  --tags=type:data-access,scope:[scope],platform:server \
+  --buildable=false
+
+# Util library
+nx g @nx/js:library util-[name] \
+  --directory=libs/shared/util-[name] \
+  --tags=type:util,scope:shared \
+  --bundler=none \
+  --unitTestRunner=vitest
+```
+
+**Required tags:**
+
+- Type tag: `type:feature`, `type:ui`, `type:data-access`, or `type:util`
+- Scope tag: `scope:shared`, `scope:appointments`, `scope:clients`, etc.
+
+### Dependency Rules (Enforced by ESLint)
+
+| From ↓ / To →   | feature | ui  | data-access | util |
+| --------------- | ------- | --- | ----------- | ---- |
+| **feature**     | ✅      | ✅  | ✅          | ✅   |
+| **ui**          | ❌      | ✅  | ❌          | ✅   |
+| **data-access** | ❌      | ❌  | ✅          | ✅   |
+| **util**        | ❌      | ❌  | ❌          | ✅   |
+
+### Nx Affected Optimization
+
+**How it works:**
+
+1. Git diff identifies changed files
+2. Project graph determines affected projects
+3. Only affected projects are tested/built
+
+**Best practices:**
+
+- Keep libraries small and focused
+- Avoid large "shared" libraries that cause everything to rebuild
+- Use proper tags for module boundary enforcement
+
+**Commands:**
+
+```bash
+nx affected:graph              # Visualize what's affected
+nx affected --target=test      # Test only affected projects
+nx affected --target=lint      # Lint only affected projects
+nx affected --target=build     # Build only affected apps (not libs!)
+```
+
+### Important: No Library Builds
+
+**Libraries are NEVER built separately:**
+
+- ❌ Libraries do NOT have build targets in `project.json`
+- ✅ Libraries are bundled directly into applications
+- ✅ Only apps/frontend and apps/backend have build targets
+
+This maximizes incremental build performance and tree-shaking.
+
+**Full Architecture Documentation**: See `.nx/NX_ARCHITECTURE.md`
+
 ## Project Structure
 
 ```

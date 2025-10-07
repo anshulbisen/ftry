@@ -65,6 +65,52 @@ This ensures Claude is always aware of project standards without manual reminder
 - Testing (`nx affected --target=test`)
 - All-in-one check (`bun run check-all`)
 
+### 4. Nx Library Generator Validator (`validate-nx-library.py`)
+
+**Event**: `PreToolUse` (Bash tool)
+**Purpose**: Validates Nx library generation commands to enforce architecture standards
+
+**Blocks**:
+
+- Using `--buildable` or `--buildable=true` flags (all libraries must be non-buildable)
+- Using `--publishable` flag (libraries are internal only)
+- Missing required `--tags` flag with type and scope tags
+- Missing required `--directory` flag with `libs/` path
+- Invalid tag format (must include `type:` and `scope:` tags)
+
+**Warns About**:
+
+- Missing recommended flags for non-buildable libraries:
+  - `@nx/react:library`: `--bundler=none`, `--unitTestRunner=vitest`
+  - `@nx/nest:library`: `--buildable=false`
+  - `@nx/js:library`: `--bundler=none`, `--unitTestRunner=vitest`
+
+**Example Output**:
+
+```
+🚫 Nx Library Generation Blocked - Architecture Violation:
+   ❌ NEVER use --buildable=true. All libraries must be non-buildable.
+   ❌ REQUIRED: --tags flag must include type and scope tags.
+      Example: --tags=type:feature,scope:appointments
+
+📖 Refer to .nx/NX_ARCHITECTURE.md for complete guidelines.
+✅ Example valid command:
+   nx g @nx/react:library feature-booking \
+     --directory=libs/appointments/feature-booking \
+     --tags=type:feature,scope:appointments \
+     --bundler=none \
+     --unitTestRunner=vitest
+```
+
+**Valid Library Types and Tags**:
+
+- `type:feature` - Feature libraries (smart components with business logic)
+- `type:ui` - UI component libraries (presentational components)
+- `type:data-access` - Data access libraries (state management, API calls)
+- `type:util` - Utility libraries (pure functions, helpers)
+
+**Valid Scope Tags**: `scope:shared`, `scope:appointments`, `scope:clients`, `scope:billing`, `scope:staff`
+
 ## Configuration
 
 Hooks are configured in `.claude/settings.json`:
@@ -92,6 +138,12 @@ To manually test a hook:
 ```bash
 # Test bash validator
 echo '{"tool_name":"Bash","tool_input":{"command":"npm install"}}' | .claude/hooks/validate-bash.py
+
+# Test Nx library validator (should block)
+echo '{"tool_name":"Bash","tool_input":{"command":"nx g @nx/react:library my-lib --buildable"}}' | .claude/hooks/validate-nx-library.py
+
+# Test Nx library validator (should pass)
+echo '{"tool_name":"Bash","tool_input":{"command":"nx g @nx/react:library feature-booking --directory=libs/appointments/feature-booking --tags=type:feature,scope:appointments --bundler=none"}}' | .claude/hooks/validate-nx-library.py
 
 # Test tooling context
 echo '{"hook_event_name":"SessionStart"}' | .claude/hooks/add-tooling-context.py
