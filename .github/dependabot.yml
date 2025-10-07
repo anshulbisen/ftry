@@ -1,0 +1,88 @@
+version: 2
+updates:
+  # Enable version updates for bun dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 10
+    reviewers:
+      - 'anshulbisen'
+    commit-message:
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
+    labels:
+      - 'dependencies'
+      - 'automated'
+    groups:
+      # Group Nx packages together
+      nx:
+        patterns:
+          - '@nx/*'
+          - 'nx'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Group NestJS packages together
+      nestjs:
+        patterns:
+          - '@nestjs/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Group React packages together
+      react:
+        patterns:
+          - 'react'
+          - 'react-*'
+          - '@types/react*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Group testing packages
+      testing:
+        patterns:
+          - 'jest*'
+          - '@jest/*'
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Group linting/formatting tools
+      code-quality:
+        patterns:
+          - 'eslint*'
+          - '@eslint/*'
+          - 'prettier'
+          - 'husky'
+          - 'lint-staged'
+          - '@commitlint/*'
+          - 'typescript-eslint'
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      # Ignore major version updates for stable packages (manual review)
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
+  # GitHub Actions updates
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Kolkata'
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'
+    labels:
+      - 'ci'
+      - 'automated'

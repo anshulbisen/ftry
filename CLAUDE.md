@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Runtime & Package Manager**: Bun (exclusively used for all operations)
 - **Architecture**: Nx 21.6.3 monorepo with shared libraries
 - **Testing**: Vitest for frontend, Jest for backend and libraries
-- **Code Quality**: ESLint, Prettier
+- **Code Quality**: ESLint 9 (flat config), Prettier 3.6, Husky 9, lint-staged, commitlint
 - **TypeScript**: 5.9.2 across the stack
 - **Database**: PostgreSQL (planned for structured data)
 - **Infrastructure**: Cloud-based (AWS/GCP/Azure with managed services)
@@ -78,20 +78,25 @@ This project follows a **lean, iterative, customer-focused approach**:
 
 - Use TypeScript for type safety across the stack
 - Implement proper error handling and logging from the start
-- Write basic tests for critical business logic
+- Write basic tests for critical business logic (see TDD guidelines in global CLAUDE.md)
 - Use environment variables for configuration
-- Follow consistent code formatting (ESLint, Prettier)
+- Follow consistent code formatting (enforced by Prettier + ESLint)
 - **CRITICAL**: Always use bun - never npm, yarn, pnpm, or node
+- **REQUIRED**: Use Conventional Commits format for all commit messages
+- **AUTOMATED**: Pre-commit hooks will format, lint, and type-check your code
+- **BEST PRACTICE**: Run `bun run check-all` before pushing to ensure CI will pass
 
 ## Package Manager Policy
 
 **This project uses bun exclusively**. No other package manager or runtime is permitted.
 
 Nx has built-in support for bun (since v19.1). It detects bun via:
+
 1. The `packageManager` field in package.json (set to `bun@1.2.19`)
 2. The presence of bun.lock file
 
 **Command Usage:**
+
 - ✅ **DO**: Use `bun install`, `bun add`, `bun remove`, `bun update` for package management
 - ✅ **DO**: Use `nx` commands directly (e.g., `nx serve frontend`) - Nx uses bun internally
 - ✅ **DO**: Use `bun run` for running package.json scripts directly
@@ -100,6 +105,189 @@ Nx has built-in support for bun (since v19.1). It detects bun via:
 - ❌ **NEVER**: Prefix nx commands with other package managers (not `npm run nx`, just `nx`)
 - ❌ **NEVER**: Create or maintain package-lock.json, yarn.lock, or pnpm-lock.yaml
 - ✅ **ONLY**: bun.lock is the legitimate lock file
+
+## Code Quality & Standards
+
+This project enforces high code quality standards through automated tooling and processes.
+
+### Git Hooks (Husky 9.x)
+
+Git hooks are automatically installed via `bun install` (husky prepare script).
+
+**Pre-commit Hook** (.husky/pre-commit):
+
+- Runs lint-staged to check staged files
+- Automatically formats code with Prettier
+- Runs ESLint with auto-fix
+- Performs type checking on affected files
+
+**Commit Message Hook** (.husky/commit-msg):
+
+- Validates commit messages follow Conventional Commits format
+- Enforced via commitlint
+
+### Commit Message Convention
+
+We use **Conventional Commits** for clear and structured commit history.
+
+**Format**: `type(scope): subject`
+
+**Allowed types**:
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code formatting (not CSS)
+- `refactor`: Code restructuring without behavior change
+- `perf`: Performance improvements
+- `test`: Adding/updating tests
+- `build`: Build system or dependency changes
+- `ci`: CI/CD configuration changes
+- `chore`: Other changes (tooling, etc.)
+- `revert`: Revert previous commit
+
+**Examples**:
+
+```bash
+feat(appointments): add online booking form
+fix(billing): correct GST calculation for multi-item invoices
+docs(readme): update setup instructions
+refactor(auth): simplify token validation logic
+```
+
+### Code Formatting (Prettier 3.6.2)
+
+Prettier automatically formats code on commit. Configuration in `.prettierrc`:
+
+- Single quotes
+- 100 character line width
+- 2 space indentation
+- Trailing commas (ES5)
+- Semicolons required
+- LF line endings
+
+**Manual formatting**:
+
+```bash
+bun run format          # Format all files
+bun run format:check    # Check formatting without writing
+```
+
+### Linting (ESLint 9 with Flat Config)
+
+ESLint enforces code quality rules using the modern flat config format.
+
+**Features**:
+
+- Nx module boundary enforcement
+- TypeScript-specific rules
+- React best practices
+- Automatic fixes where possible
+
+**Commands**:
+
+```bash
+bun run lint           # Lint affected files
+bun run lint:fix       # Lint and auto-fix affected files
+```
+
+### Type Checking
+
+TypeScript type checking runs on affected files during pre-commit.
+
+**Commands**:
+
+```bash
+bun run typecheck      # Type check affected files
+```
+
+### Continuous Integration (GitHub Actions)
+
+**CI Workflow** (`.github/workflows/ci.yml`) runs on push and PRs:
+
+1. **Code Quality Job**:
+   - Linting (ESLint)
+   - Type checking (TypeScript)
+   - Format checking (Prettier)
+
+2. **Tests Job**:
+   - Unit tests (affected)
+   - Coverage reports
+   - Uploads to Codecov (if configured)
+
+3. **Build Job**:
+   - Builds all affected projects
+   - Archives production artifacts on main branch
+
+**CI uses**:
+
+- Bun 1.2.19 (via oven-sh/setup-bun@v2)
+- Parallel execution for speed
+- Nx affected commands for efficiency
+
+### Dependency Management
+
+**Dependabot** (`.github/dependabot.yml`) automatically:
+
+- Checks for updates weekly (Monday 9 AM IST)
+- Groups related packages (Nx, NestJS, React, Testing, etc.)
+- Creates PRs for minor and patch updates
+- Ignores major updates (manual review required)
+- Also updates GitHub Actions
+
+### Pull Request Process
+
+**PR Template** includes:
+
+- Type of change checklist
+- Related issues
+- Testing checklist
+- Screenshots (if applicable)
+- Self-review confirmation
+
+**PR Requirements** (enforced by CI):
+
+- ✅ All tests pass
+- ✅ Linting passes
+- ✅ Type checking passes
+- ✅ Code is formatted
+- ✅ Conventional commit messages
+- ✅ Build succeeds
+
+### Issue Templates
+
+Two structured issue templates available:
+
+1. **Bug Report** (.github/ISSUE_TEMPLATE/bug_report.yml)
+   - Description, steps to reproduce, expected vs actual behavior
+   - Version and environment details
+
+2. **Feature Request** (.github/ISSUE_TEMPLATE/feature_request.yml)
+   - Problem statement, proposed solution
+   - Priority and scope selection
+
+### Quality Commands
+
+Quick reference for common quality checks:
+
+```bash
+# Pre-push check (run all quality checks)
+bun run check-all
+
+# Individual checks
+bun run format:check   # Check code formatting
+bun run lint           # Run linter
+bun run typecheck      # Type check TypeScript
+bun run test           # Run affected tests
+bun run build          # Build affected projects
+
+# With coverage
+bun run test:coverage
+
+# All projects (not just affected)
+bun run test:all
+bun run build:all
+```
 
 ## Project Structure
 
@@ -167,6 +355,6 @@ The `knowlege-base/` directory contains three comprehensive planning documents:
 
 2. **Roadmap for Launching a Salon SaaS Startup as a Solo Developer (Pune, India).txt**: Phased timeline (Months 0-24+) with market research, legal setup, development milestones, pilot testing, launch strategy, and growth plans specific to the Indian market.
 
-3. **Salon & Spa Management App_ Core Features and AI Innovations (2025).txt**: Detailed feature specifications including core functionality (booking, CRM, POS, loyalty) and AI-powered capabilities (24/7 automation, predictive analytics, personalized recommendations).
+3. **Salon & Spa Management App\_ Core Features and AI Innovations (2025).txt**: Detailed feature specifications including core functionality (booking, CRM, POS, loyalty) and AI-powered capabilities (24/7 automation, predictive analytics, personalized recommendations).
 
 These documents should be consulted for product decisions, feature priorities, and strategic direction.
