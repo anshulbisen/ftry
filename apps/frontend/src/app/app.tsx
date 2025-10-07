@@ -3,10 +3,22 @@
 import NxWelcome from './nx-welcome';
 
 import { Route, Routes, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export function App() {
   return (
     <div>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <h1 className="text-4xl font-bold">shadcn/ui + React 19 + Vite</h1>
+        <div className="flex gap-2">
+          <Button>Default Button</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="outline">Outline</Button>
+          <Button variant="destructive">Destructive</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button variant="link">Link</Button>
+        </div>
+      </div>
       <NxWelcome title="frontend" />
 
       {/* START: routes */}

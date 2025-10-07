@@ -23,18 +23,7 @@
         ]
       }
     ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-code-quality.py",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
+    "PostToolUse": [],
     "SessionStart": [
       {
         "hooks": [

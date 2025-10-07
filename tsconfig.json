@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./apps/frontend/src/*"]
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/frontend"
+    }
+  ]
+}

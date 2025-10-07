@@ -11,8 +11,9 @@ import sys
 # severity: "block" = exit 2 (blocks tool), "warn" = exit 1 (shows warning)
 VALIDATION_RULES = [
     # Package manager enforcement
+    # Only match commands, not package names (e.g., not @types/node)
     (
-        r'\b(npm|npx|yarn|pnpm|node)\b(?!\s+(install|init|create))',
+        r'(?:^|[\s;&|])(npm|npx|yarn|pnpm|node)\s',
         "⚠️ Use 'bun' instead of npm/yarn/pnpm/node. This project exclusively uses Bun as the runtime and package manager.",
         "block"
     ),

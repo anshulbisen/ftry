@@ -13,6 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Tech Stack
 
 - **Frontend**: React 19 with Vite bundler
+- **UI Components**: shadcn/ui (component library built on Radix UI and Tailwind CSS)
+- **Styling**: Tailwind CSS 4.1.14 with CSS variables
 - **Backend**: NestJS 11 with Webpack
 - **Runtime & Package Manager**: Bun (exclusively used for all operations)
 - **Architecture**: Nx 21.6.3 monorepo with shared libraries
@@ -105,6 +107,182 @@ Nx has built-in support for bun (since v19.1). It detects bun via:
 - ❌ **NEVER**: Prefix nx commands with other package managers (not `npm run nx`, just `nx`)
 - ❌ **NEVER**: Create or maintain package-lock.json, yarn.lock, or pnpm-lock.yaml
 - ✅ **ONLY**: bun.lock is the legitimate lock file
+
+## UI Component Library: shadcn/ui
+
+The frontend application uses **shadcn/ui** for building user interfaces. This is NOT a traditional component library installed via npm - instead, components are copied directly into your project, giving you full ownership and control.
+
+### What is shadcn/ui?
+
+shadcn/ui is a collection of re-usable components built with:
+
+- **Radix UI**: Unstyled, accessible primitives
+- **Tailwind CSS**: Utility-first styling
+- **class-variance-authority (CVA)**: Type-safe variant management
+- **React 19**: Fully compatible
+
+### Configuration (Nx Monorepo Setup)
+
+This project uses a custom configuration for Nx monorepo compatibility:
+
+- **`/components.json`** (root) - Main configuration file
+- **`/tsconfig.json`** (root) - Minimal config for CLI compatibility
+- **`apps/frontend/src/lib/utils.ts`** - `cn()` utility function
+- **`apps/frontend/src/styles.css`** - Tailwind theme with CSS variables
+
+All components are added to `apps/frontend/src/components/ui/`.
+
+### Adding Components
+
+**IMPORTANT**: Always run shadcn commands from the **project root**, NOT from `apps/frontend/`:
+
+```bash
+# ✅ CORRECT - From project root
+bunx shadcn@latest add button
+
+# ❌ WRONG - Don't run from apps/frontend
+cd apps/frontend && bunx shadcn@latest add button  # This will fail!
+```
+
+**Common components to add:**
+
+```bash
+# Core UI components
+bunx shadcn@latest add button card dialog input label
+
+# Forms
+bunx shadcn@latest add form select textarea checkbox radio-group
+
+# Navigation
+bunx shadcn@latest add dropdown-menu tabs navigation-menu
+
+# Feedback
+bunx shadcn@latest add toast alert dialog sheet
+
+# Data display
+bunx shadcn@latest add table badge avatar
+```
+
+### Using Components
+
+Import components using the `@/` path alias:
+
+```tsx
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+export function MyFeature() {
+  return (
+    <Card>
+      <Button variant="default">Primary Action</Button>
+      <Button variant="outline">Secondary Action</Button>
+    </Card>
+  );
+}
+```
+
+### The `cn()` Utility
+
+The `cn()` function intelligently merges Tailwind CSS classes:
+
+```tsx
+import { cn } from '@/lib/utils';
+
+// Conditional classes
+<div
+  className={cn('base-class', isActive && 'active-class', variant === 'primary' && 'primary-class')}
+/>;
+
+// Resolves conflicts (last wins)
+cn('p-4 text-sm', 'p-8'); // → "p-8 text-sm"
+```
+
+**When to use `cn()`:**
+
+- Conditional styling based on props/state
+- Merging base classes with prop-based overrides
+- Combining component variants with custom classes
+
+**Built with:**
+
+- `clsx` - Conditional class names
+- `tailwind-merge` - Deduplicates and resolves Tailwind conflicts
+
+### Customizing Components
+
+Since components are in your codebase, you can:
+
+1. **Modify directly**: Edit files in `apps/frontend/src/components/ui/`
+2. **Add variants**: Extend CVA configurations
+3. **Create composites**: Build higher-level components
+
+**Example - Adding a new Button variant:**
+
+```tsx
+// apps/frontend/src/components/ui/button.tsx
+const buttonVariants = cva('...', {
+  variants: {
+    variant: {
+      default: '...',
+      // Add your custom variant
+      brand: 'bg-brand-600 text-white hover:bg-brand-700',
+    },
+  },
+});
+```
+
+### Styling with Tailwind CSS v4
+
+The project uses **Tailwind CSS v4** with CSS variables for theming:
+
+```css
+/* apps/frontend/src/styles.css */
+@theme {
+  --color-primary: 0 0% 9%;
+  --color-primary-foreground: 0 0% 98%;
+  /* ... more variables */
+}
+
+/* Dark mode support */
+.dark {
+  --color-primary: 0 0% 98%;
+  --color-primary-foreground: 0 0% 9%;
+}
+```
+
+**Customizing the theme:**
+
+1. Edit `apps/frontend/src/styles.css`
+2. Modify CSS variables in `@theme` block
+3. Add your brand colors as custom variables
+4. Use them in components: `bg-primary`, `text-primary-foreground`
+
+### React 19 Compatibility
+
+All dependencies are React 19 compatible:
+
+- ✅ Radix UI primitives
+- ✅ Lucide React (icon library)
+- ✅ CVA (no React dependency)
+- ✅ Tailwind utilities
+
+### Resources
+
+- **Full Documentation**: `apps/frontend/README.md`
+- **Component Browser**: https://ui.shadcn.com/docs/components
+- **Theme Reference**: https://ui.shadcn.com/themes
+- **Icons**: https://lucide.dev
+
+### For Claude Code Agents
+
+When working with shadcn/ui:
+
+1. **Always run CLI from project root**: `bunx shadcn@latest add <component>`
+2. **Import with @ alias**: `import { Button } from '@/components/ui/button'`
+3. **Use cn() for conditional styling**: `className={cn("base", condition && "extra")}`
+4. **Customize freely**: Components are in the codebase, modify as needed
+5. **Check frontend README**: `apps/frontend/README.md` has detailed usage examples
 
 ## Code Quality & Standards
 

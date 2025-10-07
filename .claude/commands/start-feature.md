@@ -9,7 +9,6 @@ allowed-tools: TodoWrite, Bash, Write, Edit, Read, Glob, Grep, Task
 ## Context
 
 - Current branch: !`git branch --show-current`
-- Project status: !`nx graph --affected`
 
 ## Instructions
 
