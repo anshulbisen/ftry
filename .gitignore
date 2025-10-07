@@ -22,13 +22,6 @@ dist
 build
 *.tsbuildinfo
 
-# Environment variables
-# .env is committed with local development defaults (private repo only)
-# Use .env.local or .env.*.local for personal overrides if needed
-.env.local
-.env.*.local
-.env.production
-.env.staging
 
 # IDE
 .vscode/*
