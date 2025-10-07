@@ -1,4 +1,7 @@
 {
+  "tui": {
+    "enabled": false
+  },
   "installation": {
     "version": "21.6.3"
   },
