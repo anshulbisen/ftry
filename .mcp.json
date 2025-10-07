@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["shadcn@latest", "mcp"],
+      "env": {}
+    },
+    "nx-monorepo": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["-y", "nx-mcp"],
+      "env": {}
+    },
+    "postgres": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/postgres",
+        "postgresql://ftry:ftry@host.docker.internal:5432/ftry"
+      ]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "false"
+      }
+    }
+  }
+}

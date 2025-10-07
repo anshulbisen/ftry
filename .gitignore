@@ -23,9 +23,12 @@ build
 *.tsbuildinfo
 
 # Environment variables
-.env
+# .env is committed with local development defaults (private repo only)
+# Use .env.local or .env.*.local for personal overrides if needed
 .env.local
 .env.*.local
+.env.production
+.env.staging
 
 # IDE
 .vscode/*
@@ -53,3 +56,8 @@ coverage
 
 # Misc
 *.local
+
+# Docker
+docker-compose.override.yml
+.docker
+docker/postgres/data
