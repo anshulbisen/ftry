@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Frontend**: React 19 with Vite bundler
 - **Backend**: NestJS 11 with Webpack
+- **Runtime & Package Manager**: Bun (exclusively used for all operations)
 - **Architecture**: Nx 21.6.3 monorepo with shared libraries
 - **Testing**: Vitest for frontend, Jest for backend and libraries
 - **Code Quality**: ESLint, Prettier
@@ -80,6 +81,25 @@ This project follows a **lean, iterative, customer-focused approach**:
 - Write basic tests for critical business logic
 - Use environment variables for configuration
 - Follow consistent code formatting (ESLint, Prettier)
+- **CRITICAL**: Always use bun - never npm, yarn, pnpm, or node
+
+## Package Manager Policy
+
+**This project uses bun exclusively**. No other package manager or runtime is permitted.
+
+Nx has built-in support for bun (since v19.1). It detects bun via:
+1. The `packageManager` field in package.json (set to `bun@1.2.19`)
+2. The presence of bun.lock file
+
+**Command Usage:**
+- ✅ **DO**: Use `bun install`, `bun add`, `bun remove`, `bun update` for package management
+- ✅ **DO**: Use `nx` commands directly (e.g., `nx serve frontend`) - Nx uses bun internally
+- ✅ **DO**: Use `bun run` for running package.json scripts directly
+- ✅ **DO**: Use `bun` as the runtime for all Node.js scripts
+- ❌ **NEVER**: Use npm, npx, yarn, pnpm, or node commands
+- ❌ **NEVER**: Prefix nx commands with other package managers (not `npm run nx`, just `nx`)
+- ❌ **NEVER**: Create or maintain package-lock.json, yarn.lock, or pnpm-lock.yaml
+- ✅ **ONLY**: bun.lock is the legitimate lock file
 
 ## Project Structure
 
@@ -100,9 +120,19 @@ This project follows a **lean, iterative, customer-focused approach**:
 
 ## Available Commands
 
+**IMPORTANT**: This project exclusively uses **bun** as both the package manager and runtime. Never use npm, yarn, pnpm, or node.
+
+Nx automatically detects and uses bun based on the `packageManager` field in package.json and the bun.lock file. Simply run `nx` commands directly.
+
 ```bash
+# Package Management
+bun install            # Install dependencies (never use npm/yarn/pnpm)
+bun add <package>      # Add a new package
+bun remove <package>   # Remove a package
+bun update             # Update dependencies
+
 # Development
-nx serve frontend      # Start React frontend dev server
+nx serve frontend      # Start React frontend dev server (Nx uses bun internally)
 nx serve backend       # Start NestJS backend dev server
 
 # Build
@@ -124,6 +154,9 @@ nx lint backend        # Lint backend code
 nx g @nx/react:component --project=frontend    # Generate React component
 nx g @nx/nest:resource --project=backend       # Generate NestJS resource
 nx g @nx/js:lib --directory=libs/features      # Generate shared library
+
+# Run scripts (alternative syntax)
+bun run <script>       # Run package.json scripts directly with bun
 ```
 
 ## Reference Documents

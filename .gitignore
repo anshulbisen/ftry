@@ -11,6 +11,12 @@ vitest.config.*.timestamp*
 # Dependencies
 node_modules
 
+# Lock files - only bun.lock is allowed
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-shrinkwrap.json
+
 # Build outputs
 dist
 build
