@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
 import { PrismaService } from '@ftry/shared/prisma';
 import { JwtPayload, UserWithPermissions } from '@ftry/shared/types';
 import { AUTH_ERRORS } from '@ftry/shared/constants';
@@ -24,7 +25,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        // Extract JWT from HTTP-only cookie
+        (request: Request) => {
+          return request?.cookies?.['accessToken'];
+        },
+        // Fallback to Authorization header for backward compatibility during migration
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
     });

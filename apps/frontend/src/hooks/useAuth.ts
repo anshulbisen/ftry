@@ -24,10 +24,11 @@ export function useAuth() {
    * Login with email and password
    * Returns the authenticated user data
    * Caller should handle navigation after successful login
+   * Tokens are set as HTTP-only cookies by the backend
    */
   const login = async (email: string, password: string): Promise<SafeUser> => {
     const response = await authApi.login(email, password);
-    setAuth(response.user, response.accessToken, response.refreshToken);
+    setAuth(response.user); // Only user data, no tokens
     return response.user;
   };
 
@@ -35,18 +36,15 @@ export function useAuth() {
    * Logout the current user
    * Revokes refresh token on backend and clears auth state
    * Caller should handle navigation after logout
+   * Tokens are cleared via HTTP-only cookies by the backend
    */
   const logout = async (): Promise<void> => {
-    const refreshToken = useAuthStore.getState().refreshToken;
-
     // Attempt to revoke token on backend, but don't block logout on failure
-    if (refreshToken) {
-      try {
-        await authApi.logout(refreshToken);
-      } catch (error) {
-        // Silent fail - logout continues regardless
-        // Error is already handled by API client interceptor
-      }
+    try {
+      await authApi.logout(); // No refresh token needed - sent via cookie
+    } catch (error) {
+      // Silent fail - logout continues regardless
+      // Error is already handled by API client interceptor
     }
 
     // Clear local state regardless of API call result
@@ -55,7 +53,6 @@ export function useAuth() {
 
   return {
     user,
-    token: accessToken,
     isAuthenticated,
     login,
     logout,

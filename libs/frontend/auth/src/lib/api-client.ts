@@ -32,6 +32,7 @@ apiClient.interceptors.request.use(
 
 /**
  * Response interceptor for token refresh with race condition prevention
+ * Tokens are managed via HTTP-only cookies
  */
 apiClient.interceptors.response.use(
   (response) => response,
@@ -47,16 +48,16 @@ apiClient.interceptors.response.use(
       try {
         // If a refresh is already in progress, wait for it
         if (!refreshPromise) {
-          const refreshToken = useAuthStore.getState().refreshToken;
-          if (!refreshToken) {
-            throw new Error('No refresh token');
-          }
-
           // Start new refresh request
+          // The refresh token is sent automatically via HTTP-only cookie
           refreshPromise = axios
-            .post(`${API_URL}/auth/refresh`, {
-              refreshToken,
-            })
+            .post(
+              `${API_URL}/auth/refresh`,
+              {},
+              {
+                withCredentials: true, // Send cookies with refresh request
+              },
+            )
             .finally(() => {
               // Clear the promise after completion
               refreshPromise = null;
@@ -64,14 +65,11 @@ apiClient.interceptors.response.use(
         }
 
         // Wait for the refresh to complete
-        const response = await refreshPromise;
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+        // New tokens are set as cookies by the backend
+        await refreshPromise;
 
-        // Update tokens in store
-        useAuthStore.getState().updateTokens(accessToken, newRefreshToken);
-
-        // Retry the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Retry the original request
+        // The new access token cookie will be sent automatically
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Handle different types of refresh errors

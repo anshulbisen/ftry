@@ -1,15 +1,20 @@
 import { apiClient } from '../api-client';
-import { AuthResponse, SafeUser, RegisterDto } from '@ftry/shared/types';
+import { SafeUser, RegisterDto } from '@ftry/shared/types';
 
 /**
  * Authentication API endpoints
  * Handles login, register, logout, and token management
+ * Tokens are managed via HTTP-only cookies
  */
 export const authApi = {
   /**
    * Login with email and password
+   * Returns user data; tokens are set as HTTP-only cookies by backend
    */
-  login: async (email: string, password: string): Promise<AuthResponse> => {
+  login: async (
+    email: string,
+    password: string,
+  ): Promise<{ user: SafeUser; expiresIn: number }> => {
     const response = await apiClient.post('/auth/login', { email, password });
     return response.data.data;
   },
@@ -24,9 +29,10 @@ export const authApi = {
 
   /**
    * Logout and revoke refresh token
+   * Refresh token is sent automatically via HTTP-only cookie
    */
-  logout: async (refreshToken: string): Promise<void> => {
-    await apiClient.post('/auth/logout', { refreshToken });
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout');
   },
 
   /**
@@ -38,16 +44,12 @@ export const authApi = {
   },
 
   /**
-   * Refresh access token using refresh token
+   * Refresh access token
+   * Tokens are sent and received via HTTP-only cookies
+   * This endpoint is called automatically by axios interceptor
    */
-  refreshToken: async (
-    refreshToken: string,
-  ): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-  }> => {
-    const response = await apiClient.post('/auth/refresh', { refreshToken });
+  refreshToken: async (): Promise<{ expiresIn: number }> => {
+    const response = await apiClient.post('/auth/refresh');
     return response.data.data;
   },
 };
