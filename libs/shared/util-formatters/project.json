@@ -1,0 +1,9 @@
+{
+  "name": "util-formatters",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/util-formatters/src",
+  "projectType": "library",
+  "tags": ["type:util", "scope:shared", "platform:shared"],
+  "// targets": "to see all targets run: nx show project util-formatters --web",
+  "targets": {}
+}

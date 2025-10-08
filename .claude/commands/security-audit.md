@@ -23,7 +23,7 @@ Deploy security specialists to identify and fix vulnerabilities in your applicat
    - Backup security
    - Audit logging
 
-3. **frontend-specialist** (Priority 2):
+3. **frontend-expert** (Priority 2):
    - XSS vulnerability scanning
    - CSRF protection
    - Secure cookie handling

@@ -130,7 +130,7 @@ For each agent, update:
 
 ### 5. Specific Updates by Agent Type
 
-#### Frontend Agents (frontend-specialist.md)
+#### Frontend Agents (frontend-expert.md)
 
 ```markdown
 ## Tech Stack Expertise
@@ -293,7 +293,7 @@ Updated X/Y agents with current project state
 - Added new validation decorators
 - Updated Prisma to 6.2.1
 
-### frontend-specialist.md
+### frontend-expert.md
 
 - Updated React version: 18 → 19.0.2
 - Added new shadcn/ui components

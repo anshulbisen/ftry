@@ -1,44 +1,51 @@
+import { useMemo } from 'react';
 import { useAuthStore } from '@/store';
 import { Card } from '@/components/ui/card';
+import { StatCard } from '@/components/common';
+import { formatINR } from '@ftry/shared/util-formatters';
 import { Users, Calendar, Receipt, TrendingUp } from 'lucide-react';
 
 export function DashboardPage() {
   const { user } = useAuthStore();
 
-  const stats = [
-    {
-      title: 'Total Appointments',
-      value: '156',
-      change: '+12%',
-      icon: Calendar,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
-    },
-    {
-      title: 'Active Clients',
-      value: '342',
-      change: '+8%',
-      icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
-    },
-    {
-      title: 'Revenue',
-      value: '₹45,230',
-      change: '+23%',
-      icon: Receipt,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
-    },
-    {
-      title: 'Growth',
-      value: '18%',
-      change: '+5%',
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
-    },
-  ];
+  // Memoize stats to prevent unnecessary re-renders
+  const stats = useMemo(
+    () => [
+      {
+        title: 'Total Appointments',
+        value: '156',
+        change: '+12%',
+        icon: Calendar,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-100',
+      },
+      {
+        title: 'Active Clients',
+        value: '342',
+        change: '+8%',
+        icon: Users,
+        color: 'text-green-600',
+        bgColor: 'bg-green-100',
+      },
+      {
+        title: 'Revenue',
+        value: formatINR(45230),
+        change: '+23%',
+        icon: Receipt,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-100',
+      },
+      {
+        title: 'Growth',
+        value: '18%',
+        change: '+5%',
+        icon: TrendingUp,
+        color: 'text-orange-600',
+        bgColor: 'bg-orange-100',
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="space-y-6">
@@ -63,23 +70,17 @@ export function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="mt-2 text-3xl font-bold">{stat.value}</p>
-                  <p className="mt-1 text-xs text-green-600">{stat.change} from last month</p>
-                </div>
-                <div className={`${stat.bgColor} rounded-lg p-3`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.title}
+            title={stat.title}
+            value={stat.value}
+            change={stat.change}
+            icon={stat.icon}
+            color={stat.color}
+            bgColor={stat.bgColor}
+          />
+        ))}
       </div>
 
       {/* Recent Activity */}

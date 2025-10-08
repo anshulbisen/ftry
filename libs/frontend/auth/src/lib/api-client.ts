@@ -6,6 +6,38 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 // Track ongoing refresh promise to prevent race conditions
 let refreshPromise: Promise<AxiosResponse<{ data: { expiresIn: number } }>> | null = null;
 
+// Track CSRF token
+let csrfToken: string | null = null;
+
+// HTTP methods that require CSRF protection
+const CSRF_PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
+
+/**
+ * Fetch CSRF token from backend
+ */
+async function fetchCsrfToken(): Promise<string> {
+  if (csrfToken) {
+    return csrfToken;
+  }
+
+  try {
+    const response = await axios.get(`${API_URL}/auth/csrf`, {
+      withCredentials: true,
+    });
+
+    // Token is in the response header
+    const token = response.headers['x-csrf-token'];
+    if (token) {
+      csrfToken = token;
+      return token;
+    }
+    throw new Error('CSRF token not found in response');
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error);
+    throw error;
+  }
+}
+
 /**
  * Configured axios instance with auth interceptors
  * Handles automatic token refresh via HTTP-only cookies
@@ -19,12 +51,26 @@ export const apiClient = axios.create({
 });
 
 /**
- * Request interceptor - no longer needed for token attachment
- * Tokens are sent automatically via HTTP-only cookies
+ * Request interceptor - attaches CSRF token to state-changing requests
+ * Tokens (access/refresh) are sent automatically via HTTP-only cookies
  */
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    // Cookies are sent automatically with withCredentials: true
+  async (config: InternalAxiosRequestConfig) => {
+    // Check if this request needs CSRF protection
+    const method = (config.method || 'GET').toUpperCase();
+    const needsCsrf = CSRF_PROTECTED_METHODS.includes(method);
+
+    if (needsCsrf) {
+      try {
+        // Get CSRF token (cached or fetch new one)
+        const token = await fetchCsrfToken();
+        config.headers['x-csrf-token'] = token;
+      } catch (error) {
+        console.error('Failed to attach CSRF token:', error);
+        // Let request proceed - backend will reject if CSRF is required
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error),
@@ -40,6 +86,12 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+
+    // Clear CSRF token on 403 (likely invalid token)
+    if (error.response?.status === 403) {
+      csrfToken = null;
+      console.warn('CSRF token cleared due to 403 error. Will fetch new token on next request.');
+    }
 
     // If error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {

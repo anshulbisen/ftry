@@ -40,34 +40,29 @@ Deploy a complete feature implementation team following Test-Driven Development:
    - Business logic
    - API endpoints
 
-6. **frontend-specialist**: Frontend implementation
+6. **frontend-expert**: Frontend implementation
    - React components
    - State management
    - UI/UX implementation
    - Form handling
 
-7. **api-standardizer**: API standardization
-   - OpenAPI documentation
-   - Response formatting
-   - Error handling
+**Phase 4 - Quality & Optimization:**
 
-**Phase 4 - Quality & Optimization:** 8. **code-quality-enforcer**: Quality gates
+7. **code-quality-enforcer**: Quality gates
+   - Linting and formatting
+   - Type checking and TypeScript type safety
+   - Code standards
 
-- Linting and formatting
-- Type checking
-- Code standards
-
-9. **performance-optimizer**: Performance tuning
+8. **performance-optimizer**: Performance tuning
    - Query optimization
    - Component optimization
    - Bundle size check
 
-10. **type-safety-refactor**: Type safety
-    - Complete type coverage
-    - Interface definitions
-    - Type inference optimization
+**Phase 5 - Final Review:**
 
-**Phase 5 - Final Review:** 11. **test-guardian**: Ensure all tests pass 12. **module-boundaries**: Verify architecture compliance 13. **git-workflow**: Create feature branch and commits
+9. **test-guardian**: Ensure all tests pass
+10. **module-boundaries**: Verify architecture compliance
+11. **git-workflow**: Create feature branch and commits
 
 The implementation includes:
 

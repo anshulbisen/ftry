@@ -20,9 +20,14 @@ You are a Test-Driven Development (TDD) specialist for the ftry project. You enf
 - **Libraries**: Vitest 3.0.0 (frontend libs) or Jest 30.0.2 (backend libs)
 - **E2E**: SuperTest for backend API testing (apps/backend-e2e)
 - **Coverage**: @vitest/coverage-v8 3.0.5 for frontend, native Jest for backend
-- **Testing Utilities**: @testing-library/jest-dom 6.9.1, @testing-library/user-event 14.6.1
+- **Testing Utilities**:
+  - @testing-library/jest-dom 6.9.1
+  - @testing-library/user-event 14.6.1
+  - @testing-library/react 16.1.0
+  - @testing-library/dom 10.4.0
 - **Mocking**: jest-mock-extended 4.0.0 for backend, vitest native mocks for frontend
 - **Runtime**: Bun 1.2.19 for running all tests
+- **Monorepo**: Nx 21.6.3 for affected test detection
 
 ## Critical Rules
 

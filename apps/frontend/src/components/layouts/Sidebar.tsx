@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { memo, useMemo, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Users,
@@ -15,6 +16,7 @@ import {
   Shield,
   Key,
   UserCog,
+  type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,8 @@ import {
 import { useUIStore, useAuthStore } from '@/store';
 import { ROUTES } from '@/constants/routes';
 import { type NavItem } from '@/types';
+import { SidebarNavItem } from './SidebarNavItem';
+import { SidebarSection } from './SidebarSection';
 
 const getNavigationItems = (isSuperAdmin: boolean, isTenantAdmin: boolean): NavItem[] => {
   const baseItems: NavItem[] = [
@@ -105,95 +109,114 @@ const getNavigationItems = (isSuperAdmin: boolean, isTenantAdmin: boolean): NavI
   return baseItems;
 };
 
-export function Sidebar() {
+interface SidebarProps {
+  isMobile?: boolean;
+}
+
+export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { sidebarCollapsed, toggleSidebarCollapsed } = useUIStore();
+  const { sidebarCollapsed, sidebarOpen, toggleSidebarCollapsed, setSidebarOpen } = useUIStore();
   const { user, logout, isSuperAdmin, isTenantAdmin } = useAuthStore();
 
-  const navigationItems = getNavigationItems(isSuperAdmin(), isTenantAdmin());
+  // Memoize navigation items based on user roles
+  const navigationItems = useMemo(
+    () => getNavigationItems(isSuperAdmin(), isTenantAdmin()),
+    [isSuperAdmin, isTenantAdmin],
+  );
 
-  const isActive = (href: string) => {
-    if (!href) return false; // Skip section headers
-    return location.pathname === href || location.pathname.startsWith(href + '/');
-  };
+  // Memoize isActive check
+  const isActive = useCallback(
+    (href: string) => {
+      if (!href) return false; // Skip section headers
+      return location.pathname === href || location.pathname.startsWith(href + '/');
+    },
+    [location.pathname],
+  );
 
-  const handleLogout = () => {
+  // Memoize logout handler
+  const handleLogout = useCallback(() => {
     logout();
     navigate(ROUTES.PUBLIC.LOGIN);
-  };
+  }, [logout, navigate]);
+
+  // Memoize nav click handler
+  const handleNavClick = useCallback(() => {
+    // Close sidebar on mobile after navigation
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [isMobile, setSidebarOpen]);
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-background transition-all duration-300',
-        sidebarCollapsed ? 'w-16' : 'w-64',
+        'fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-border bg-background transition-all duration-300',
+        isMobile
+          ? // Mobile: drawer behavior
+            sidebarOpen
+            ? 'w-64 translate-x-0'
+            : 'w-64 -translate-x-full'
+          : // Desktop: collapse behavior
+            sidebarCollapsed
+            ? 'w-16'
+            : 'w-64',
       )}
     >
       {/* Sidebar Header */}
       <div className="flex h-16 items-center justify-between border-b border-border px-4">
-        {!sidebarCollapsed && (
+        {(!sidebarCollapsed || isMobile) && (
           <div className="flex items-center gap-2">
             <Scissors className="h-6 w-6 text-primary" />
             <span className="text-lg font-semibold">FTRY</span>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebarCollapsed}
-          className={cn('h-8 w-8', sidebarCollapsed && 'mx-auto')}
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
+        {/* Only show collapse button on desktop */}
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebarCollapsed}
+            className={cn('h-8 w-8', sidebarCollapsed && 'mx-auto')}
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
         {navigationItems.map((item, index) => {
-          const Icon = item.icon;
           const active = isActive(item.href);
 
           // Render section header
           if (item.isSection) {
             return (
-              <div
+              <SidebarSection
                 key={`section-${index}`}
-                className={cn('mt-4 px-3 py-2', sidebarCollapsed ? 'border-t border-border' : '')}
-              >
-                {!sidebarCollapsed && Icon && (
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {item.title}
-                    </span>
-                  </div>
-                )}
-              </div>
+                title={item.title}
+                icon={item.icon as LucideIcon | undefined}
+                isCollapsed={sidebarCollapsed}
+              />
             );
           }
 
           // Render navigation item
           return (
-            <Link
+            <SidebarNavItem
               key={item.href}
-              to={item.href}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                active
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
-                sidebarCollapsed && 'justify-center',
-              )}
-              title={sidebarCollapsed ? item.title : undefined}
-            >
-              {Icon && <Icon className="h-5 w-5 shrink-0" />}
-              {!sidebarCollapsed && <span>{item.title}</span>}
-            </Link>
+              title={item.title}
+              href={item.href}
+              icon={item.icon as LucideIcon | undefined}
+              isActive={active}
+              isCollapsed={sidebarCollapsed}
+              isMobile={isMobile}
+              onClick={handleNavClick}
+            />
           );
         })}
       </nav>
@@ -278,4 +301,6 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
+});
+
+Sidebar.displayName = 'Sidebar';

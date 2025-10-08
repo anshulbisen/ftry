@@ -1,18 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuthStore } from '@/store';
 import { userApi } from '@ftry/frontend/auth';
 import { getErrorMessage } from '@ftry/shared/utils';
-import type { SafeUser, PaginatedResponse } from '@ftry/shared/types';
+import type { SafeUser } from '@ftry/shared/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -20,17 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { VirtualList } from '@/components/common';
+import { UserCard } from '@/components/admin/UserCard';
 import { InviteUserModal } from '@/components/modals/InviteUserModal';
-import { Search, UserPlus, MoreVertical, Edit, Trash, Ban } from 'lucide-react';
+import { Search, UserPlus } from 'lucide-react';
 
 export function Users() {
   const { isSuperAdmin, isTenantAdmin, user: currentUser } = useAuthStore();
@@ -45,10 +30,6 @@ export function Users() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   const canInviteUsers = isSuperAdmin() || isTenantAdmin();
 
@@ -98,52 +79,49 @@ export function Users() {
     }
 
     setFilteredUsers(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
   };
 
-  const handleDeactivateUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to deactivate this user?')) return;
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleEditUser = useCallback((userId: string) => {
+    alert('Edit functionality coming soon');
+  }, []);
 
-    try {
-      await userApi.updateUser(userId, { status: 'inactive' });
-      alert('User deactivated successfully');
-      loadUsers();
-    } catch (err: unknown) {
-      alert(getErrorMessage(err, 'Failed to deactivate user'));
-    }
-  };
+  const handleDeactivateUser = useCallback(
+    async (userId: string) => {
+      if (!confirm('Are you sure you want to deactivate this user?')) return;
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.'))
-      return;
+      try {
+        await userApi.updateUser(userId, { status: 'inactive' });
+        alert('User deactivated successfully');
+        loadUsers();
+      } catch (err: unknown) {
+        alert(getErrorMessage(err, 'Failed to deactivate user'));
+      }
+    },
+    [loadUsers],
+  );
 
-    try {
-      await userApi.deleteUser(userId);
-      alert('User deleted successfully');
-      loadUsers();
-    } catch (err: unknown) {
-      alert(getErrorMessage(err, 'Failed to delete user'));
-    }
-  };
+  const handleDeleteUser = useCallback(
+    async (userId: string) => {
+      if (!confirm('Are you sure you want to delete this user? This action cannot be undone.'))
+        return;
 
-  // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+      try {
+        await userApi.deleteUser(userId);
+        alert('User deleted successfully');
+        loadUsers();
+      } catch (err: unknown) {
+        alert(getErrorMessage(err, 'Failed to delete user'));
+      }
+    },
+    [loadUsers],
+  );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-700">Active</Badge>;
-      case 'inactive':
-        return <Badge className="bg-gray-100 text-gray-700">Inactive</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
+  // Use virtual list for better performance with large user lists
+  const virtualListHeight = useMemo(() => {
+    const itemCount = Math.min(filteredUsers.length, 10); // Show max 10 items at once
+    return Math.min(itemCount * 72, 720); // 72px per item, max 720px
+  }, [filteredUsers.length]);
 
   if (isLoading) {
     return (
@@ -221,117 +199,37 @@ export function Users() {
         </Select>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              {isSuperAdmin() && <TableHead>Tenant</TableHead>}
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentUsers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={isSuperAdmin() ? 6 : 5} className="text-center">
-                  No users found
-                </TableCell>
-              </TableRow>
-            ) : (
-              currentUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-                        {user.firstName.charAt(0)}
-                        {user.lastName.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {user.firstName} {user.lastName}
-                        </p>
-                        {user.phone && (
-                          <p className="text-xs text-muted-foreground">{user.phone}</p>
-                        )}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{user.role.name.replace('_', ' ')}</Badge>
-                  </TableCell>
-                  {isSuperAdmin() && <TableCell>{user.tenant?.name || 'No Tenant'}</TableCell>}
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => alert('Edit functionality coming soon')}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit User
-                        </DropdownMenuItem>
-                        {user.id !== currentUser?.id && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleDeactivateUser(user.id)}>
-                              <Ban className="mr-2 h-4 w-4" />
-                              Deactivate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+      {/* User List with Virtual Scrolling */}
+      <div className="rounded-md border bg-card">
+        {filteredUsers.length === 0 ? (
+          <div className="flex h-48 items-center justify-center text-muted-foreground">
+            No users found
+          </div>
+        ) : (
+          <VirtualList
+            items={filteredUsers}
+            height={virtualListHeight}
+            itemHeight={72}
+            className="rounded-md"
+            renderItem={(user) => (
+              <UserCard
+                user={user}
+                currentUserId={currentUser?.id}
+                isSuperAdmin={isSuperAdmin()}
+                onEdit={handleEditUser}
+                onDeactivate={handleDeactivateUser}
+                onDelete={handleDeleteUser}
+              />
             )}
-          </TableBody>
-        </Table>
+          />
+        )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of{' '}
-            {filteredUsers.length} users
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Summary */}
+      <div className="text-sm text-muted-foreground">
+        Showing {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}
+        {filteredUsers.length !== totalUsers && ` (filtered from ${totalUsers} total)`}
+      </div>
 
       {/* Invite User Modal */}
       <InviteUserModal

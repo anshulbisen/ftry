@@ -7,13 +7,16 @@ import { AuthService } from './services/auth.service';
 import { UserValidationService } from './services/user-validation.service';
 import { TokenCleanupService } from './services/token-cleanup.service';
 import { PrismaModule } from '@ftry/shared/prisma';
+import { QueueModule } from '@ftry/backend/queue';
 import { JwtStrategy, LocalStrategy } from './strategies';
 import { AuthController } from './controllers/auth.controller';
 import { PermissionsGuard } from './guards';
+import { CsrfService } from '@ftry/backend/common';
 
 @Module({
   imports: [
     PrismaModule,
+    QueueModule,
     ScheduleModule.forRoot(),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -45,6 +48,7 @@ import { PermissionsGuard } from './guards';
     JwtStrategy,
     LocalStrategy,
     PermissionsGuard,
+    CsrfService,
   ],
   exports: [AuthService, UserValidationService, JwtStrategy, LocalStrategy, PermissionsGuard],
 })

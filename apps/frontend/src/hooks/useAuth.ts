@@ -13,11 +13,12 @@ import type { SafeUser } from '@ftry/shared/types';
 export function useAuth() {
   const {
     user,
-    accessToken,
     isAuthenticated,
+    isLoading,
     setAuth,
     logout: logoutStore,
     setUser,
+    setLoading,
   } = useAuthStore();
 
   /**
@@ -27,9 +28,14 @@ export function useAuth() {
    * Tokens are set as HTTP-only cookies by the backend
    */
   const login = async (email: string, password: string): Promise<SafeUser> => {
-    const response = await authApi.login(email, password);
-    setAuth(response.user); // Only user data, no tokens
-    return response.user;
+    setLoading(true);
+    try {
+      const response = await authApi.login(email, password);
+      setAuth(response.user); // Only user data, no tokens
+      return response.user;
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -39,21 +45,27 @@ export function useAuth() {
    * Tokens are cleared via HTTP-only cookies by the backend
    */
   const logout = async (): Promise<void> => {
-    // Attempt to revoke token on backend, but don't block logout on failure
+    setLoading(true);
     try {
-      await authApi.logout(); // No refresh token needed - sent via cookie
-    } catch (error) {
-      // Silent fail - logout continues regardless
-      // Error is already handled by API client interceptor
-    }
+      // Attempt to revoke token on backend, but don't block logout on failure
+      try {
+        await authApi.logout(); // No refresh token needed - sent via cookie
+      } catch (error) {
+        // Silent fail - logout continues regardless
+        // Error is already handled by API client interceptor
+      }
 
-    // Clear local state regardless of API call result
-    logoutStore();
+      // Clear local state regardless of API call result
+      logoutStore();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
     user,
     isAuthenticated,
+    isLoading,
     login,
     logout,
     updateUser: setUser,

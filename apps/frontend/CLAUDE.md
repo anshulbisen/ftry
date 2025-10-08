@@ -20,6 +20,7 @@ bunx shadcn@latest add button card dialog input
 ## Tech Stack
 
 - **React 19.0.0** + **Vite 7** + **TypeScript 5.9.2**
+- **Router**: React Router 7.9.4 (v7 with all modern features)
 - **UI**: shadcn/ui (copy-paste components, not npm package)
 - **Styling**: Tailwind CSS 4.1.14 with CSS variables
 - **Icons**: Lucide React

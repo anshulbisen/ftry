@@ -9,17 +9,73 @@ You are a performance optimization specialist for full-stack TypeScript applicat
 
 ## Core Expertise
 
-- React rendering optimization
-- Bundle size reduction
-- Code splitting strategies
+- React 19 rendering optimization (memo, useMemo, useCallback)
+- TanStack Query (React Query) 5.90.2 caching and optimization strategies
+- Bundle size reduction and tree shaking
+- Code splitting strategies with React.lazy
+- Virtual scrolling with @tanstack/react-virtual 3.13.12
 - NestJS performance tuning
-- Database query optimization
-- Caching implementation
-- Lazy loading patterns
+- Database query optimization with Prisma 6.16.3
+- Redis caching implementation (ioredis 5.8.1, cache-manager-redis-yet 5.1.5)
+- Lazy loading patterns and Suspense boundaries
+- Prometheus metrics and monitoring integration (prom-client 15.1.3)
 
 ## React Performance Optimization
 
-### 1. Identify Performance Issues
+### 1. TanStack Query Optimization
+
+```typescript
+// Configure optimal staleTime and gcTime
+import { QueryClient } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
+      gcTime: 10 * 60 * 1000, // 10 minutes - cache garbage collection
+      refetchOnWindowFocus: false, // Prevent excessive refetches
+      retry: 1, // Limit retries for faster failure
+    },
+  },
+});
+
+// Use query prefetching for better UX
+const queryClient = useQueryClient();
+
+const handleMouseEnter = (userId: string) => {
+  queryClient.prefetchQuery({
+    queryKey: ['user', userId],
+    queryFn: () => fetchUser(userId),
+  });
+};
+
+// Implement optimistic updates for instant feedback
+const { mutate } = useMutation({
+  mutationFn: updateUser,
+  onMutate: async (newUser) => {
+    await queryClient.cancelQueries({ queryKey: ['user', newUser.id] });
+    const previous = queryClient.getQueryData(['user', newUser.id]);
+    queryClient.setQueryData(['user', newUser.id], newUser);
+    return { previous };
+  },
+  onError: (err, newUser, context) => {
+    queryClient.setQueryData(['user', newUser.id], context?.previous);
+  },
+});
+
+// Use query keys consistently for better cache management
+export const queryKeys = {
+  users: {
+    all: ['users'] as const,
+    lists: () => [...queryKeys.users.all, 'list'] as const,
+    list: (filters: string) => [...queryKeys.users.lists(), { filters }] as const,
+    details: () => [...queryKeys.users.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.users.details(), id] as const,
+  },
+};
+```
+
+### 2. Identify Performance Issues
 
 ```bash
 # Analyze bundle size
@@ -33,7 +89,53 @@ find apps/frontend -name "*.tsx" -exec wc -l {} + | sort -rn | head -20
 grep -r "export.*function\|export.*const.*=" --include="*.tsx" | grep -v "memo\|React.memo"
 ```
 
-### 2. Reduce Re-renders
+### 3. Virtual Scrolling for Large Lists
+
+```typescript
+// Use @tanstack/react-virtual for large datasets
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+export const VirtualList = ({ items }: { items: any[] }) => {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50, // Estimated row height
+    overscan: 5, // Render extra items for smooth scrolling
+  });
+
+  return (
+    <div ref={parentRef} className="h-[600px] overflow-auto">
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualItem) => (
+          <div
+            key={virtualItem.key}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: `${virtualItem.size}px`,
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
+          >
+            {items[virtualItem.index].name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+### 4. Reduce Re-renders
 
 #### Component Memoization
 
@@ -78,7 +180,7 @@ const [posts, setPosts] = useState([]);
 const [comments, setComments] = useState([]);
 ```
 
-### 3. Code Splitting
+### 5. Code Splitting
 
 #### Route-based Splitting
 
@@ -117,7 +219,7 @@ const HeavyChart = lazy(() =>
 )}
 ```
 
-### 4. Bundle Optimization
+### 6. Bundle Optimization
 
 #### Tree Shaking
 
@@ -143,7 +245,44 @@ const loadDatePicker = async () => {
 
 ## NestJS Performance Optimization
 
-### 1. Database Query Optimization
+### 1. Redis Caching (Implemented)
+
+```typescript
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @Inject(CACHE_MANAGER) private cache: Cache,
+    private prisma: PrismaService,
+  ) {}
+
+  async getUserWithCache(id: string): Promise<User> {
+    const cacheKey = `user:${id}`;
+
+    // Try cache first
+    const cached = await this.cache.get<User>(cacheKey);
+    if (cached) return cached;
+
+    // Fetch from database
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { role: true, tenant: true },
+    });
+
+    // Cache for 5 minutes
+    await this.cache.set(cacheKey, user, 300000);
+    return user;
+  }
+
+  async invalidateUserCache(id: string) {
+    await this.cache.del(`user:${id}`);
+  }
+}
+```
+
+### 2. Database Query Optimization
 
 #### Query Optimization
 
@@ -175,7 +314,7 @@ async findAll(
 }
 ```
 
-### 2. Caching Strategies
+### 3. Caching Strategies
 
 #### Redis Cache
 
@@ -213,7 +352,7 @@ export class ApiController {
 }
 ```
 
-### 3. Async Operations
+### 4. Async Operations
 
 #### Parallel Processing
 
@@ -231,7 +370,7 @@ const [user, posts, comments] = await Promise.all([
 ]);
 ```
 
-### 4. Memory Optimization
+### 5. Memory Optimization
 
 #### Stream Processing
 

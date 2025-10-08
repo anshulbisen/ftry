@@ -1,56 +1,27 @@
 #!/usr/bin/env python3
 """
-Adds project tooling context to user prompts for SessionStart events.
-Reminds Claude about project standards and available tools.
+Adds concise project tooling context to user prompts for SessionStart events.
+Optimized to provide only critical reminders without overwhelming context.
 """
 import json
 import sys
 
 TOOLING_CONTEXT = """
-## 🛠️ Project Tooling Standards (Auto-injected Context)
+## Project Standards (ftry)
 
-**CRITICAL REMINDERS**:
+**Runtime**: Bun 1.2.19 exclusively (never npm/yarn/pnpm/node)
+**Commands**: Use `nx` directly, not `bun nx` (Nx auto-detects bun)
+**Development**: TDD approach - tests before implementation
+**Commits**: Conventional format: `type(scope): subject`
 
-1. **Package Manager**: This project uses **bun exclusively**
-   - ✅ USE: `bun install`, `bun add`, `bun remove`, `bun run`
-   - ❌ NEVER: npm, yarn, pnpm, npx, or node commands
-   - The packageManager field in package.json enforces bun@1.2.19
+**Quick Reference**:
+- Dev servers: `nx serve [frontend|backend]`
+- Quality gate: `bun run check-all` (before commits)
+- Database: `bunx prisma [generate|migrate|studio]`
+- Workflows: `/implement-feature`, `/test-first`, `/commit`
+- Review: `/full-review`, `/quick-fix`, `/security-audit`
 
-2. **Nx Commands**: Call `nx` directly, NOT `bun nx`
-   - ✅ USE: `nx serve frontend`, `nx test backend`
-   - ❌ NEVER: `bun nx serve frontend`
-   - Nx auto-detects bun via packageManager field
-
-3. **Preferred Tools** (use these instead of bash commands):
-   - File reading: Use Read tool, not `cat`
-   - File search: Use Glob tool, not `find`
-   - Content search: Use Grep tool, not `grep` or `rg`
-   - File editing: Use Edit tool, not `sed` or `awk`
-
-4. **Code Quality Tools**:
-   - Formatting: Prettier 3.6.2 (automatic via pre-commit)
-   - Linting: ESLint 9 with flat config
-   - Type checking: TypeScript 5.9.2
-   - Git hooks: Husky 9.1.7 (auto-runs on commit)
-
-5. **Commit Standards**:
-   - Format: `type(scope): subject`
-   - Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
-   - Commitlint enforces this automatically
-
-6. **Available Scripts** (from package.json):
-   - `bun run format` - Format all files
-   - `bun run lint` - Lint affected files
-   - `bun run typecheck` - Type check affected files
-   - `bun run test` - Run affected tests
-   - `bun run check-all` - Run all quality checks
-
-7. **Testing**:
-   - Frontend: Vitest
-   - Backend/Libs: Jest
-   - Always run affected tests: `nx affected --target=test`
-
-**When in doubt, consult CLAUDE.md for complete standards.**
+See CLAUDE.md for complete standards and workflows.
 """
 
 

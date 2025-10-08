@@ -58,9 +58,5 @@ coverage
 # Misc
 *.local
 
-# Docker
-docker-compose.override.yml
-.docker
-docker/postgres/data
-
 /generated/prisma
+.mcp.json

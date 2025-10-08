@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { router } from '@/routes';
 import { useUIStore, useAuthStore } from '@/store';
 import { authApi } from '@ftry/frontend/auth';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { prefetchCsrfToken } from '@/lib/csrf';
 
 export function App() {
   const { setTheme } = useUIStore();
@@ -21,18 +23,18 @@ export function App() {
   // Initialize and validate auth state on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      const { accessToken, isAuthenticated, setAuth, logout, refreshToken } =
-        useAuthStore.getState();
+      // Prefetch CSRF token for future requests
+      prefetchCsrfToken();
+
+      const { isAuthenticated, setAuth, logout } = useAuthStore.getState();
 
       // If user appears authenticated, validate the session
-      if (isAuthenticated && accessToken) {
+      if (isAuthenticated) {
         try {
           // Attempt to fetch current user to validate session
           const user = await authApi.getCurrentUser();
           // Update user data in store (in case it changed)
-          if (refreshToken) {
-            setAuth(user, accessToken, refreshToken);
-          }
+          setAuth(user);
         } catch {
           // Session is invalid, clear auth state
           console.warn('Session validation failed, clearing auth state');
@@ -64,7 +66,11 @@ export function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  return <RouterProvider router={router} />;
+  return (
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

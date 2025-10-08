@@ -39,6 +39,12 @@ export class EnvironmentVariables {
   NODE_ENV?: string;
 
   // Security Configuration
+  @IsString()
+  @MinLength(32, {
+    message: 'CSRF_SECRET must be at least 32 characters. Generate with: openssl rand -base64 64',
+  })
+  CSRF_SECRET!: string;
+
   @IsOptional()
   @IsNumber()
   @Min(10)

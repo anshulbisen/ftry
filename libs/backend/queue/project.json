@@ -1,0 +1,9 @@
+{
+  "name": "queue",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/queue/src",
+  "projectType": "library",
+  "tags": ["type:data-access", "scope:backend", "platform:server"],
+  "// targets": "to see all targets run: nx show project queue --web",
+  "targets": {}
+}

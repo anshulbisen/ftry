@@ -95,6 +95,7 @@ describe('useAuth Hook', () => {
   let mockSetAuth: Mock;
   let mockLogoutStore: Mock;
   let mockSetUser: Mock;
+  let mockSetLoading: Mock;
 
   beforeEach(() => {
     // Reset all mocks
@@ -104,6 +105,7 @@ describe('useAuth Hook', () => {
     mockSetAuth = vi.fn();
     mockLogoutStore = vi.fn();
     mockSetUser = vi.fn();
+    mockSetLoading = vi.fn();
 
     // Mock useAuthStore implementation
     (useAuthStore as unknown as Mock).mockReturnValue({
@@ -111,16 +113,20 @@ describe('useAuth Hook', () => {
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      isLoading: false,
       setAuth: mockSetAuth,
       logout: mockLogoutStore,
       setUser: mockSetUser,
+      setLoading: mockSetLoading,
     });
 
-    // Mock getState for logout
+    // Mock getState for logout operations
     (useAuthStore as unknown as { getState: ReturnType<typeof vi.fn> }).getState = vi
       .fn()
       .mockReturnValue({
         refreshToken: 'stored-refresh-token',
+        setLoading: mockSetLoading,
+        logout: mockLogoutStore,
       });
   });
 
@@ -139,11 +145,10 @@ describe('useAuth Hook', () => {
 
       // Assert
       expect(authApi.login).toHaveBeenCalledWith('test@example.com', 'password123');
-      expect(mockSetAuth).toHaveBeenCalledWith(
-        mockAuthResponse.user,
-        mockAuthResponse.accessToken,
-        mockAuthResponse.refreshToken,
-      );
+      // setAuth now only takes user (tokens are httpOnly cookies)
+      expect(mockSetAuth).toHaveBeenCalledWith(mockAuthResponse.user);
+      expect(mockSetLoading).toHaveBeenCalledWith(true);
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
       expect(loginResult).toEqual(mockUser);
     });
 
@@ -218,9 +223,11 @@ describe('useAuth Hook', () => {
         accessToken: 'current-access-token',
         refreshToken: 'current-refresh-token',
         isAuthenticated: true,
+        isLoading: false,
         setAuth: mockSetAuth,
         logout: mockLogoutStore,
         setUser: mockSetUser,
+        setLoading: mockSetLoading,
       });
     });
 
@@ -235,8 +242,11 @@ describe('useAuth Hook', () => {
       });
 
       // Assert
-      expect(authApi.logout).toHaveBeenCalledWith('stored-refresh-token');
+      // HTTP-only cookie auth - no token passed to logout
+      expect(authApi.logout).toHaveBeenCalled();
       expect(mockLogoutStore).toHaveBeenCalled();
+      expect(mockSetLoading).toHaveBeenCalledWith(true);
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
     });
 
     it('should clear local state even if API call fails', async () => {
@@ -262,6 +272,8 @@ describe('useAuth Hook', () => {
         .fn()
         .mockReturnValue({
           refreshToken: null,
+          setLoading: mockSetLoading,
+          logout: mockLogoutStore,
         });
 
       // Act
@@ -271,7 +283,8 @@ describe('useAuth Hook', () => {
       });
 
       // Assert
-      expect(authApi.logout).not.toHaveBeenCalled();
+      // HTTP-only cookie auth - logout API still called
+      expect(authApi.logout).toHaveBeenCalled();
       expect(mockLogoutStore).toHaveBeenCalled();
     });
 
@@ -418,23 +431,24 @@ describe('useAuth Hook', () => {
       expect(result.current.user).toEqual(mockUser);
     });
 
-    it('should expose access token as "token"', () => {
+    it('should expose isLoading state', () => {
       // Arrange
-      const accessToken = 'mock-access-token';
       (useAuthStore as unknown as Mock).mockReturnValue({
         user: mockUser,
-        accessToken,
+        accessToken: 'mock-token',
         isAuthenticated: true,
+        isLoading: true,
         setAuth: mockSetAuth,
         logout: mockLogoutStore,
         setUser: mockSetUser,
+        setLoading: mockSetLoading,
       });
 
       // Act
       const { result } = renderHook(() => useAuth());
 
       // Assert
-      expect(result.current.token).toBe(accessToken);
+      expect(result.current.isLoading).toBe(true);
     });
 
     it('should expose isAuthenticated flag', () => {
@@ -513,6 +527,8 @@ describe('useAuth Hook', () => {
         .fn()
         .mockReturnValue({
           refreshToken: null,
+          setLoading: mockSetLoading,
+          logout: mockLogoutStore,
         });
 
       // Act
@@ -522,8 +538,11 @@ describe('useAuth Hook', () => {
       });
 
       // Assert
-      expect(authApi.logout).not.toHaveBeenCalled();
+      // Logout API is still called even without refresh token (httpOnly cookie)
+      expect(authApi.logout).toHaveBeenCalled();
       expect(mockLogoutStore).toHaveBeenCalled();
+      expect(mockSetLoading).toHaveBeenCalledWith(true);
+      expect(mockSetLoading).toHaveBeenCalledWith(false);
     });
 
     it('should handle API returning malformed data', async () => {

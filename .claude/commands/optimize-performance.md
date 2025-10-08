@@ -18,7 +18,7 @@ Deploy performance optimization specialists to analyze and improve your applicat
    - Reviews N+1 query problems
    - Suggests query optimizations
 
-3. **frontend-specialist**:
+3. **frontend-expert**:
    - Reviews component memoization
    - Checks for unnecessary re-renders
    - Validates code splitting strategy

@@ -9,28 +9,30 @@ Deploy a team of refactoring specialists to systematically improve your codebase
 **Phase 1 - Analysis (parallel):**
 
 1. **code-duplication-detector**: Identify duplicate code patterns
-2. **type-safety-refactor**: Find type safety issues
+2. **code-quality-enforcer**: Find type safety and quality issues
 3. **module-boundaries**: Detect architectural violations
 
-**Phase 2 - Planning:** 4. **nx-specialist**: Plan library extraction and reorganization 5. **senior-architect**: Review refactoring strategy
+**Phase 2 - Planning:**
 
-**Phase 3 - Implementation (parallel):** 6. **frontend-specialist**: Refactor React components
+4. **nx-specialist**: Plan library extraction and reorganization
+5. **senior-architect**: Review refactoring strategy
 
-- Extract custom hooks
-- Create reusable components
-- Optimize component structure
+**Phase 3 - Implementation (parallel):**
+
+6. **frontend-expert**: Refactor React components
+   - Extract custom hooks
+   - Create reusable components
+   - Optimize component structure
 
 7. **backend-expert**: Refactor NestJS modules
    - Extract services
    - Improve dependency injection
-   - Standardize patterns
+   - Standardize API patterns and DTOs
 
-8. **api-standardizer**: Standardize API patterns
-   - Unify response formats
-   - Standardize error handling
-   - Create consistent DTOs
+**Phase 4 - Quality Assurance:**
 
-**Phase 4 - Quality Assurance:** 9. **code-quality-enforcer**: Ensure all quality gates pass 10. **test-guardian**: Update tests for refactored code
+8. **code-quality-enforcer**: Ensure all quality gates pass
+9. **test-guardian**: Update tests for refactored code
 
 The refactoring will address:
 

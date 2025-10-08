@@ -67,9 +67,29 @@ export default [
               sourceTag: 'scope:auth',
               onlyDependOnLibsWithTags: ['scope:shared', 'scope:auth'],
             },
+            // Platform isolation - prevent cross-platform imports
+            {
+              sourceTag: 'platform:client',
+              onlyDependOnLibsWithTags: ['platform:client', 'platform:shared'],
+            },
+            {
+              sourceTag: 'platform:server',
+              onlyDependOnLibsWithTags: ['platform:server', 'platform:shared'],
+            },
           ],
         },
       ],
+    },
+  },
+  {
+    // Ban console.log in backend code (use logger instead)
+    files: [
+      'apps/backend/**/*.ts',
+      'libs/backend/**/*.ts',
+      'libs/shared/**/!(*.spec).ts', // Shared libs except tests
+    ],
+    rules: {
+      'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },
   {

@@ -1,80 +1,71 @@
 # ftry
 
-Salon & Spa Management SaaS - A comprehensive platform for Indian salon businesses.
+Salon & Spa Management SaaS for Indian businesses.
 
-## Dummy Credentials
+## Quick Start
+
+```bash
+bun install
+cp .env.example .env
+# Edit .env with your configuration
+# Note: PostgreSQL (Neon) and Redis Cloud credentials are pre-configured
+bun run db:migrate
+bun run dev
+```
+
+**→ See [QUICK_START.md](./QUICK_START.md) for detailed setup**
+
+## Demo Credentials
 
 - super@ftry.com / DevPassword123!@#
 - admin@glamour.com / DevPassword123!@#
 - manager@glamour.com / DevPassword123!@#
-- admin@elegance.com / DevPassword123!@#
-- manager@elegance.com / DevPassword123!@#
-
-## Documentation
-
-- **[Quick Start](./docs/README.md)** - Setup and development guide
-- **[Authentication](./docs/AUTHENTICATION.md)** - Complete auth implementation
-- **[Database](./docs/DATABASE.md)** - Schema and Prisma guide
 
 ## Tech Stack
 
-- **Runtime & Package Manager**: Bun 1.2.19
-- **Frontend**: React 19, Vite, Tailwind CSS v4, shadcn/ui
-- **Backend**: NestJS 11, PostgreSQL 16, Prisma 6
+- **Runtime**: Bun 1.2.19
+- **Frontend**: React 19, Vite, Tailwind CSS, shadcn/ui
+- **Backend**: NestJS 11, PostgreSQL 18 (Neon Cloud), Prisma 6, Redis 7 (Redis Cloud)
 - **Monorepo**: Nx 21.6.3
-- **Language**: TypeScript 5.9.2
+- **Telemetry**: Grafana Cloud
 
-## Prerequisites
+## Documentation
 
-- [Bun](https://bun.sh) v1.2.19 or later
-- Nx will automatically use bun for package operations
+- **[QUICK_START.md](./QUICK_START.md)** - Get started in 5 minutes
+- **[CLAUDE.md](./CLAUDE.md)** - Complete project documentation
+- **[docs/](./docs/)** - Technical guides
 
-**IMPORTANT**: This project exclusively uses **bun**. Do not use npm, yarn, pnpm, or node.
-
-## Getting Started
+## Development
 
 ```bash
-# Install dependencies
-bun install
+# Start development servers
+bun run dev           # Start backend + frontend
 
-# Start frontend development server
-nx serve frontend
+# Database (Cloud-based - Neon PostgreSQL)
+bun run db:migrate    # Run migrations
+bun run db:studio     # Open Prisma Studio
 
-# Start backend development server
-nx serve backend
-
-# Run tests
-nx test frontend
-nx test backend
-
-# Build for production
-nx build frontend
-nx build backend
-
-# Lint code
-nx lint frontend
-nx lint backend
+# Code quality
+bun run format        # Format code
+bun run lint          # Lint code
+bun run test          # Run tests
+bun run check-all     # All checks
 ```
-
-> **Note**: Nx automatically detects and uses bun via the `packageManager` field in package.json and the bun.lock file. Simply run `nx` commands directly.
 
 ## Project Structure
 
 ```
-/apps
-  /frontend          # React application
-  /backend           # NestJS application
-  /backend-e2e       # E2E tests
-/libs
-  /shared
-    /types           # Shared types
-    /utils           # Shared utilities
+apps/
+  backend/          # NestJS API
+  frontend/         # React SPA
+libs/
+  backend/          # Backend libraries
+  frontend/         # Frontend libraries
+  shared/           # Shared code
+docs/               # Documentation
+prisma/             # Database schema
 ```
-
-## Documentation
-
-See [CLAUDE.md](./CLAUDE.md) for comprehensive project documentation, architecture decisions, and development guidelines.
 
 ## License
 
-Private - All Rights Reserved
+Proprietary - Anshul Bisen

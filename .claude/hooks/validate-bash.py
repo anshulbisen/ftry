@@ -42,16 +42,6 @@ VALIDATION_RULES = [
 
     # Prefer specialized tools over bash commands
     (
-        r'\bgrep\b(?!.*\|)',
-        "ℹ️ Use the Grep tool instead of 'grep' command for better performance and features",
-        "warn"
-    ),
-    (
-        r'\bfind\s+\S+\s+-name\b',
-        "ℹ️ Use the Glob tool instead of 'find -name' for pattern matching",
-        "warn"
-    ),
-    (
         r'\b(sed|awk)\b',
         "ℹ️ Use the Edit tool instead of 'sed/awk' for file modifications",
         "warn"

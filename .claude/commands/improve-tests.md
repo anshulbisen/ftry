@@ -24,7 +24,7 @@ Deploy testing specialists to enhance your test suite and achieve comprehensive 
    - Improve test descriptions
    - Add better assertions
 
-5. **frontend-specialist**: Frontend-specific testing
+5. **frontend-expert**: Frontend-specific testing
    - Component interaction tests
    - Hook testing
    - Accessibility tests

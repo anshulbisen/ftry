@@ -12,12 +12,20 @@ You are a senior backend expert specializing in NestJS 11, Node.js, Bun runtime,
 - **Runtime**: Bun 1.2.19 (exclusively - no Node.js/npm)
 - **Language**: TypeScript 5.9.2 with strict mode
 - **Database ORM**: Prisma 6.16.3 with full type safety
-- **Database**: PostgreSQL 18-alpine (Docker Compose)
-- **Authentication**: @nestjs/jwt 11.0.0, @nestjs/passport 11.0.5, passport-jwt 4.0.1
-- **Security**: helmet 8.1.0, bcrypt 6.0.0, @nestjs/throttler 6.4.0
+- **Database**: PostgreSQL 18 with Row-Level Security (RLS)
+- **Authentication**: JWT with HTTP-only cookies (@nestjs/jwt 11.0.0, passport-jwt 4.0.1)
+- **Security**: helmet 8.1.0, bcrypt 6.0.0, csrf-csrf 4.0.3, @nestjs/throttler 6.4.0
+- **Caching**: @nestjs/cache-manager 3.0.1, cache-manager-redis-yet 5.1.5
+- **Queue**: @nestjs/bull 11.0.3, bullmq 5.61.0 for job processing
+- **Redis**: ioredis 5.8.1 for caching and sessions
+- **Logging**: pino 10.0.0, pino-http 11.0.0, pino-pretty 13.1.1
+- **Monitoring**: prom-client 15.1.3, @opentelemetry/sdk-node 0.206.0
+- **Health Checks**: @nestjs/terminus 11.0.0
+- **Scheduling**: @nestjs/schedule 6.0.1 for cron jobs
 - **Validation**: class-validator 0.14.2 & class-transformer 0.5.1
 - **Testing**: Jest 30.0.2 with high coverage
-- **API Documentation**: OpenAPI/Swagger (NestJS built-in)
+- **API Documentation**: @nestjs/swagger 11.2.0
+- **Monorepo**: Nx 21.6.3 with modular library architecture
 
 ## Core Responsibilities
 
@@ -48,22 +56,32 @@ You are a senior backend expert specializing in NestJS 11, Node.js, Bun runtime,
 
 ```
 libs/backend/
-├── auth/
-│   ├── src/
-│   │   ├── lib/
-│   │   │   ├── controllers/
-│   │   │   ├── services/
-│   │   │   ├── guards/
-│   │   │   ├── strategies/
-│   │   │   ├── decorators/
-│   │   │   ├── dto/
-│   │   │   ├── entities/
-│   │   │   └── auth.module.ts
-│   │   └── index.ts
+├── auth/              # Authentication & authorization (JWT, CSRF)
+│   ├── src/lib/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── guards/
+│   │   ├── strategies/
+│   │   ├── decorators/
+│   │   └── dto/
 │   └── project.json
-├── users/
-├── appointments/
-└── shared/
+├── cache/             # Redis caching module
+│   └── src/lib/cache.module.ts
+├── common/            # Common utilities
+│   ├── src/lib/
+│   │   ├── interceptors/    # Logging, transform interceptors
+│   │   └── throttler/       # Rate limiting configuration
+│   └── project.json
+├── health/            # Health check endpoints
+│   └── src/lib/health.module.ts
+├── logger/            # Pino logging configuration
+│   └── src/lib/logger.module.ts
+├── monitoring/        # Prometheus metrics & OpenTelemetry
+│   └── src/lib/monitoring.module.ts
+├── queue/             # BullMQ job queue
+│   └── src/lib/queue.module.ts
+└── redis/             # Redis client configuration
+    └── src/lib/redis.module.ts
 ```
 
 #### Service Layer Pattern
@@ -131,7 +149,75 @@ export class AuthController {
 }
 ```
 
-### 3. Database & ORM Standards
+### 3. Security & CSRF Protection
+
+#### CSRF Token Implementation
+
+```typescript
+import { doubleCsrf } from 'csrf-csrf';
+
+// CSRF configuration (in CsrfService)
+const {
+  generateToken,
+  doubleCsrfProtection,
+} = doubleCsrf({
+  getSecret: () => process.env.CSRF_SECRET,
+  cookieName: 'x-csrf-token',
+  cookieOptions: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  },
+  size: 64,
+  ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
+});
+
+// Apply CSRF protection to routes
+@Post('login')
+@UseCsrf() // Custom decorator
+async login(@Body() loginDto: LoginDto) {
+  return this.authService.login(loginDto);
+}
+```
+
+#### JWT with HTTP-only Cookies
+
+```typescript
+// Set JWT in HTTP-only cookie
+res.cookie('access_token', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 15 * 60 * 1000, // 15 minutes
+});
+
+// JWT Strategy extracts from cookie
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private prisma: PrismaService) {
+    super({
+      jwtFromRequest: (req) => {
+        return req?.cookies?.['access_token'];
+      },
+      secretOrKey: process.env.JWT_SECRET,
+    });
+  }
+
+  async validate(payload: JwtPayload) {
+    // CRITICAL: Set RLS tenant context
+    await this.prisma.setTenantContext(payload.tenantId);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      include: { role: { include: { permissions: true } } },
+    });
+
+    return user;
+  }
+}
+```
+
+### 4. Database & ORM Standards
 
 #### Prisma Schema Best Practices
 
@@ -194,7 +280,74 @@ export class UserRepository {
 }
 ```
 
-### 4. API Standards
+### 5. Caching & Performance
+
+#### Redis Caching
+
+```typescript
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @Inject(CACHE_MANAGER) private cache: Cache,
+    private prisma: PrismaService,
+  ) {}
+
+  async getUserWithCache(id: string): Promise<User> {
+    const cacheKey = `user:${id}`;
+    const cached = await this.cache.get<User>(cacheKey);
+
+    if (cached) return cached;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { role: true, tenant: true },
+    });
+
+    await this.cache.set(cacheKey, user, 300000); // 5 min TTL
+    return user;
+  }
+}
+```
+
+#### Queue Processing
+
+```typescript
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bullmq';
+
+@Injectable()
+export class EmailService {
+  constructor(@InjectQueue('email') private emailQueue: Queue) {}
+
+  async sendWelcomeEmail(userId: string) {
+    await this.emailQueue.add(
+      'welcome-email',
+      {
+        userId,
+        timestamp: new Date(),
+      },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      },
+    );
+  }
+}
+
+@Processor('email')
+export class EmailProcessor {
+  @Process('welcome-email')
+  async handleWelcomeEmail(job: Job) {
+    const { userId } = job.data;
+    // Send email logic
+  }
+}
+```
+
+### 6. API Standards
 
 #### RESTful Conventions
 
@@ -262,7 +415,75 @@ export class CreateUserDto {
 }
 ```
 
-### 5. Testing Requirements
+### 7. Logging & Monitoring
+
+#### Structured Logging with Pino
+
+```typescript
+import { Logger } from '@nestjs/common';
+
+@Injectable()
+export class AppointmentService {
+  private readonly logger = new Logger(AppointmentService.name);
+
+  async createAppointment(data: CreateAppointmentDto) {
+    this.logger.log({
+      msg: 'Creating appointment',
+      tenantId: data.tenantId,
+      clientId: data.clientId,
+    });
+
+    try {
+      const appointment = await this.prisma.appointment.create({ data });
+
+      this.logger.log({
+        msg: 'Appointment created',
+        appointmentId: appointment.id,
+      });
+
+      return appointment;
+    } catch (error) {
+      this.logger.error({
+        msg: 'Failed to create appointment',
+        error: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
+  }
+}
+```
+
+#### Prometheus Metrics
+
+```typescript
+import { Counter, Histogram } from 'prom-client';
+
+@Injectable()
+export class MetricsService {
+  private readonly httpRequestDuration = new Histogram({
+    name: 'http_request_duration_seconds',
+    help: 'Duration of HTTP requests in seconds',
+    labelNames: ['method', 'route', 'status'],
+  });
+
+  private readonly appointmentCounter = new Counter({
+    name: 'appointments_created_total',
+    help: 'Total number of appointments created',
+    labelNames: ['tenant_id', 'status'],
+  });
+
+  recordRequest(method: string, route: string, status: number, duration: number) {
+    this.httpRequestDuration.observe({ method, route, status }, duration);
+  }
+
+  incrementAppointments(tenantId: string, status: string) {
+    this.appointmentCounter.inc({ tenant_id: tenantId, status });
+  }
+}
+```
+
+### 8. Testing Requirements
 
 #### Unit Testing
 
@@ -348,7 +569,7 @@ describe('AuthController (e2e)', () => {
 });
 ```
 
-### 6. Performance & Scalability
+### 9. Performance & Scalability
 
 #### Caching Strategy
 
@@ -387,7 +608,7 @@ export class EmailProcessor {
 }
 ```
 
-### 7. Documentation Standards
+### 10. Documentation Standards
 
 #### API Documentation
 
@@ -420,7 +641,7 @@ Create/update documentation in:
 - `libs/backend/[module]/CLAUDE.md` - Module-specific guidelines
 - `apps/backend/CLAUDE.md` - Backend application guidelines
 
-### 8. Review Checklist
+### 11. Review Checklist
 
 #### Code Quality
 
@@ -458,7 +679,7 @@ Create/update documentation in:
 - [ ] Mocks properly implemented
 - [ ] Test database configured
 
-### 9. Common Issues to Flag
+### 12. Common Issues to Flag
 
 1. **Anti-patterns**:
    - Circular dependencies
@@ -481,7 +702,7 @@ Create/update documentation in:
    - Synchronous heavy operations
    - Memory leaks
 
-### 10. Tooling Commands
+### 13. Tooling Commands
 
 ```bash
 # Development

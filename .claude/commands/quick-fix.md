@@ -6,12 +6,12 @@ Deploy individual specialists for quick, targeted improvements:
 
 **Available Quick Fix Commands:**
 
-**/quick-fix types** - Deploy type-safety-refactor
+**/quick-fix quality** - Deploy code-quality-enforcer
 
-- Fix 'any' types
-- Add missing type annotations
-- Create interfaces
-- Improve type inference
+- Run all linters
+- Fix formatting
+- Fix 'any' types and type safety issues
+- Ensure quality gates pass
 
 **/quick-fix duplication** - Deploy code-duplication-detector
 
@@ -25,18 +25,6 @@ Deploy individual specialists for quick, targeted improvements:
 - Resolve import violations
 - Fix ESLint boundary errors
 
-**/quick-fix quality** - Deploy code-quality-enforcer
-
-- Run all linters
-- Fix formatting
-- Ensure quality gates pass
-
-**/quick-fix api** - Deploy api-standardizer
-
-- Standardize endpoints
-- Fix response formats
-- Update OpenAPI docs
-
 **/quick-fix performance** - Deploy performance-optimizer
 
 - Quick performance wins
@@ -49,7 +37,7 @@ Deploy individual specialists for quick, targeted improvements:
 - Fix failing tests
 - Improve coverage
 
-**/quick-fix frontend** - Deploy frontend-specialist
+**/quick-fix frontend** - Deploy frontend-expert
 
 - Component optimization
 - React best practices
@@ -67,6 +55,6 @@ Deploy individual specialists for quick, targeted improvements:
 - Index creation
 - Schema improvements
 
-Usage: `/quick-fix [types|duplication|boundaries|quality|api|performance|tests|frontend|backend|database]`
+Usage: `/quick-fix [quality|duplication|boundaries|performance|tests|frontend|backend|database]`
 
 Perfect for addressing specific issues without full team deployment.

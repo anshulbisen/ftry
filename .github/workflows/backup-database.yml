@@ -1,0 +1,143 @@
+name: Database Backup
+
+# Run daily at 2 AM UTC (7:30 AM IST)
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  backup:
+    name: Backup PostgreSQL Database
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup directory
+        run: mkdir -p backups
+
+      - name: Run database backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT || '5432' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE="backups/ftry_backup_${TIMESTAMP}.dump"
+
+          echo "Creating backup: $BACKUP_FILE"
+
+          PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \
+            -h "$POSTGRES_HOST" \
+            -p "$POSTGRES_PORT" \
+            -U "$POSTGRES_USER" \
+            -d "$POSTGRES_DB" \
+            --format=custom \
+            --compress=9 \
+            --verbose \
+            --file="$BACKUP_FILE"
+
+          echo "Backup created: $(du -h "$BACKUP_FILE" | cut -f1)"
+          echo "BACKUP_FILE=$BACKUP_FILE" >> $GITHUB_ENV
+
+      - name: Verify backup integrity
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          echo "Verifying backup..."
+          PGPASSWORD="$POSTGRES_PASSWORD" pg_restore --list "$BACKUP_FILE" > /dev/null
+          echo "✅ Backup verification passed"
+
+      - name: Upload to AWS S3
+        if: success()
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          S3_BUCKET: ${{ secrets.S3_BACKUP_BUCKET }}
+        run: |
+          # Install AWS CLI
+          sudo apt-get install -y awscli
+
+          # Upload backup to S3
+          aws s3 cp "$BACKUP_FILE" "s3://$S3_BUCKET/daily/" \
+            --storage-class STANDARD_IA \
+            --region "$AWS_REGION"
+
+          echo "✅ Backup uploaded to S3"
+
+      - name: Cleanup old S3 backups
+        if: success()
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          S3_BUCKET: ${{ secrets.S3_BACKUP_BUCKET }}
+        run: |
+          # Delete backups older than 30 days
+          CUTOFF_DATE=$(date -d '30 days ago' +%Y%m%d)
+
+          echo "Deleting S3 backups older than $CUTOFF_DATE..."
+
+          aws s3 ls "s3://$S3_BUCKET/daily/" | \
+            while read -r line; do
+              file=$(echo $line | awk '{print $4}')
+              if [[ $file =~ ftry_backup_([0-9]{8})_ ]]; then
+                file_date="${BASH_REMATCH[1]}"
+                if [ "$file_date" -lt "$CUTOFF_DATE" ]; then
+                  echo "Deleting: $file"
+                  aws s3 rm "s3://$S3_BUCKET/daily/$file"
+                fi
+              fi
+            done
+
+          echo "✅ Cleanup complete"
+
+      - name: Notify on success
+        if: success()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "✅ Database backup completed successfully",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *Database Backup Successful*\n\n*Database:* ftry\n*Timestamp:* $(date)\n*Status:* Backup uploaded to S3"
+                  }
+                }
+              ]
+            }
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "❌ Database backup FAILED",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *Database Backup Failed*\n\n*Database:* ftry\n*Timestamp:* $(date)\n*Action:* Check GitHub Actions logs immediately"
+                  }
+                }
+              ]
+            }

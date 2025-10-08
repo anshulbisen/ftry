@@ -54,7 +54,12 @@ model User {
   // Profile Information
   firstName     String          @db.VarChar(100)
   lastName      String          @db.VarChar(100)
-  phone         String?         @db.VarChar(20)
+
+  // Phone (encrypted for PII protection)
+  phone         String?         @db.VarChar(20)    // DEPRECATED - migrate to phoneEncrypted
+  phoneEncrypted String?        @db.VarChar(500)   // AES-256 encrypted phone number
+  phoneHash     String?         @db.VarChar(64)    // SHA-256 hash for searching
+
   avatar        String?         @db.VarChar(500) // URL to avatar image
 
   // Multi-tenant Association
@@ -98,6 +103,7 @@ model User {
   @@index([roleId])
   @@index([email])
   @@index([status])
+  @@index([phoneHash]) // For searching by encrypted phone
 }
 
 // ==================== AUTHENTICATION ====================

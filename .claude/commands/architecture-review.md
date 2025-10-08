@@ -25,7 +25,7 @@ Deploy senior architecture specialists to review and guide your system design:
    - Module coupling assessment
    - Tag enforcement review
 
-**Phase 2 - Domain Analysis (parallel):** 4. **frontend-specialist**: Frontend architecture
+**Phase 2 - Domain Analysis (parallel):** 4. **frontend-expert**: Frontend architecture
 
 - Component hierarchy
 - State management strategy

@@ -6,7 +6,7 @@ Launch the subagent-updater agent to analyze the current project state and updat
 
 - Latest package versions from package.json
 - New libraries and frameworks discovered in the codebase
-- Docker Compose to identify new services and dependencies
+- Docker Compose to identify service versions
 - Updated file structures and patterns
 - Current best practices based on recent code
 - New tools and MCP integrations available

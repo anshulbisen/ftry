@@ -27,6 +27,8 @@ import {
 } from '@ftry/shared/constants';
 import { removePassword } from '@ftry/shared/utils';
 import { UserValidationService } from './user-validation.service';
+import { CacheService } from '@ftry/backend/cache';
+import { QueueService } from '@ftry/backend/queue';
 
 /**
  * AuthService - Core authentication logic
@@ -41,6 +43,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly userValidationService: UserValidationService,
+    private readonly cacheService: CacheService,
+    private readonly queueService: QueueService,
   ) {}
 
   /**
@@ -57,6 +61,26 @@ export class AuthService {
 
     // Create user
     const user = await this.createUser(dto, hashedPassword);
+
+    // Invalidate cache (user doesn't exist in cache yet, but be explicit)
+    await this.invalidateUserCache(user.id);
+
+    // Send verification email asynchronously (non-blocking)
+    // TODO: Generate verification token and link
+    await this.queueService
+      .addEmailJob('send-verification', {
+        to: user.email,
+        subject: 'Verify your email address',
+        template: 'email-verification',
+        data: {
+          name: `${user.firstName} ${user.lastName}`,
+          verificationLink: `${process.env.FRONTEND_URL}/verify-email?token=TODO`,
+        },
+      })
+      .catch((error) => {
+        // Log error but don't fail registration if email queue fails
+        this.logger.error(`Failed to queue verification email for ${user.email}`, error);
+      });
 
     this.logger.log(`User registered successfully: ${user.id}`);
     // Type assertion is safe here because removePassword returns the correct type
@@ -494,5 +518,15 @@ export class AuthService {
 
     // Prisma returns all fields including updatedAt, safe to cast
     return tokenRecord as unknown as RefreshTokenWithUser;
+  }
+
+  /**
+   * Invalidate user cache
+   * Called when user data changes (role update, status change, etc.)
+   */
+  private async invalidateUserCache(userId: string): Promise<void> {
+    const cacheKey = `user:${userId}`;
+    await this.cacheService.del(cacheKey);
+    this.logger.debug(`Cache invalidated for user: ${userId}`);
   }
 }
