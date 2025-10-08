@@ -10,6 +10,7 @@ import {
   Version,
   Res,
   UnauthorizedException,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -40,6 +41,7 @@ import {
 } from '@ftry/shared/types';
 import { AUTH_MESSAGES, FIELD_LIMITS, TOKEN_CONFIG } from '@ftry/shared/constants';
 import { successResponse, toSafeUser } from '@ftry/shared/utils';
+import { CsrfInterceptor } from '@ftry/backend/common';
 
 interface AuthenticatedRequest extends Request {
   user: UserWithPermissions;
@@ -56,10 +58,37 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
+   * Get CSRF token
+   */
+  @Get('csrf')
+  @Version('1')
+  @UseInterceptors(CsrfInterceptor)
+  @ApiOperation({
+    summary: 'Get CSRF token',
+    description:
+      'Retrieve CSRF token for state-changing operations. Token is returned in X-CSRF-Token header.',
+  })
+  @ApiOkResponse({
+    description: 'CSRF token generated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'CSRF token generated' },
+        timestamp: { type: 'string', format: 'date-time' },
+      },
+    },
+  })
+  async getCsrfToken(): Promise<ApiResponseType<null>> {
+    return successResponse('CSRF token generated', null);
+  }
+
+  /**
    * Register a new user
    */
   @Post('register')
   @Version('1')
+  @UseInterceptors(CsrfInterceptor)
   @Throttle({ default: { ttl: 3600000, limit: 3 } }) // 3 registrations per hour per IP
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -120,6 +149,7 @@ export class AuthController {
    */
   @Post('login')
   @Version('1')
+  @UseInterceptors(CsrfInterceptor)
   @Throttle({ default: { ttl: 60000, limit: 5 } }) // 5 login attempts per minute per IP
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -212,6 +242,7 @@ export class AuthController {
    */
   @Post('refresh')
   @Version('1')
+  @UseInterceptors(CsrfInterceptor)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { ttl: 60000, limit: 10 } }) // SECURITY: Rate limit to 10 requests per minute
   @ApiOperation({
@@ -269,6 +300,7 @@ export class AuthController {
    */
   @Post('logout')
   @Version('1')
+  @UseInterceptors(CsrfInterceptor)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
@@ -368,6 +400,7 @@ export class AuthController {
    */
   @Post('revoke-all')
   @Version('1')
+  @UseInterceptors(CsrfInterceptor)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
@@ -435,10 +468,13 @@ export class AuthController {
    * Set authentication cookies
    */
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
+    const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
+      secure: isProduction,
+      // SameSite 'strict' blocks cross-origin cookies (different ports in dev)
+      // Use 'lax' in dev (localhost:3000 → localhost:3001), 'strict' in prod
+      sameSite: isProduction ? ('strict' as const) : ('lax' as const),
     };
 
     res.cookie('accessToken', accessToken, {
