@@ -5,7 +5,7 @@ export default [
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist'],
+    ignores: ['**/dist', '**/vite.config.*.timestamp*', '**/vitest.config.*.timestamp*'],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -16,6 +16,11 @@ export default [
           enforceBuildableLibDependency: false, // We don't use buildable libs
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
+            // Applications can depend on any library
+            {
+              sourceTag: 'type:app',
+              onlyDependOnLibsWithTags: ['*'],
+            },
             // Feature libraries can depend on anything
             {
               sourceTag: 'type:feature',
@@ -57,6 +62,10 @@ export default [
             {
               sourceTag: 'scope:staff',
               onlyDependOnLibsWithTags: ['scope:shared', 'scope:staff'],
+            },
+            {
+              sourceTag: 'scope:auth',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:auth'],
             },
           ],
         },

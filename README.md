@@ -2,11 +2,25 @@
 
 Salon & Spa Management SaaS - A comprehensive platform for Indian salon businesses.
 
+## Dummy Credentials
+
+- super@ftry.com / DevPassword123!@#
+- admin@glamour.com / DevPassword123!@#
+- manager@glamour.com / DevPassword123!@#
+- admin@elegance.com / DevPassword123!@#
+- manager@elegance.com / DevPassword123!@#
+
+## Documentation
+
+- **[Quick Start](./docs/README.md)** - Setup and development guide
+- **[Authentication](./docs/AUTHENTICATION.md)** - Complete auth implementation
+- **[Database](./docs/DATABASE.md)** - Schema and Prisma guide
+
 ## Tech Stack
 
-- **Runtime & Package Manager**: Bun
-- **Frontend**: React 19 with Vite
-- **Backend**: NestJS 11
+- **Runtime & Package Manager**: Bun 1.2.19
+- **Frontend**: React 19, Vite, Tailwind CSS v4, shadcn/ui
+- **Backend**: NestJS 11, PostgreSQL 16, Prisma 6
 - **Monorepo**: Nx 21.6.3
 - **Language**: TypeScript 5.9.2
 

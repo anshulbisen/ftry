@@ -1,10 +1,10 @@
 ---
-description: Run quality checks, commit changes, and push to remote
-argument-hint: [commit-message]
+description: Run quality checks, commit changes, and optionally push to remote
+argument-hint: [commit-message] [--push]
 allowed-tools: Bash, BashOutput, Task
 ---
 
-# Commit and Push Changes
+# Commit Changes (with Quality Checks)
 
 ## Context
 
@@ -14,17 +14,25 @@ allowed-tools: Bash, BashOutput, Task
 
 ## Instructions
 
-Create a clean commit and push to remote with the message: **$ARGUMENTS**
+Create a clean commit with comprehensive quality checks. Include `--push` to also push to remote.
+
+Message: **$ARGUMENTS**
 
 ### Process:
 
-1. **Run Quality Checks First**
+1. **Pre-Commit Quality Checks**
+
+   Deploy the **code-quality-enforcer** and **test-guardian** agents to ensure:
 
    ```bash
-   bun run check-all
+   # Quick validation (< 2 minutes)
+   bun run format:check
+   bun run lint
+   bun run typecheck
+   nx affected --target=test
    ```
 
-   Fix any issues found before proceeding.
+   For full checks, use: `bun run check-all`
 
 2. **Stage Changes**
    Review changes and stage appropriate files:

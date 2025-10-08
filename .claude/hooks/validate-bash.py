@@ -52,11 +52,6 @@ VALIDATION_RULES = [
         "warn"
     ),
     (
-        r'\bcat\s+[^\|]+(?:\||$)',
-        "ℹ️ Use the Read tool instead of 'cat' for reading files",
-        "warn"
-    ),
-    (
         r'\b(sed|awk)\b',
         "ℹ️ Use the Edit tool instead of 'sed/awk' for file modifications",
         "warn"

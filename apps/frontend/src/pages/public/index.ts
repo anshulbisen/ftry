@@ -1,8 +1,9 @@
 /**
  * Public pages exports
+ * Note: Registration removed - this is an invite-only application
+ * User creation is handled by super admins via the admin panel
  */
 
 export { LandingPage } from './LandingPage';
 export { LoginPage } from './LoginPage';
-export { RegisterPage } from './RegisterPage';
 export { ForgotPasswordPage } from './ForgotPasswordPage';

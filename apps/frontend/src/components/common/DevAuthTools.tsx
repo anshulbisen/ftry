@@ -51,9 +51,11 @@ export function DevAuthTools() {
               </p>
               {user && (
                 <div className="mt-2 space-y-1 text-xs">
-                  <p>Name: {user.name}</p>
+                  <p>
+                    Name: {user.firstName} {user.lastName}
+                  </p>
                   <p>Email: {user.email}</p>
-                  <p>Role: {user.role}</p>
+                  <p>Role: {user.role.name}</p>
                 </div>
               )}
             </div>

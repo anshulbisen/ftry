@@ -1,10 +1,13 @@
 ---
-description: Start TDD cycle - write failing tests before implementation
-argument-hint: [component/service] [test-type]
+description: Write failing tests first for a specific component/service (focused TDD for single items)
+argument-hint: [component/service] [unit|integration|e2e]
 allowed-tools: Write, Edit, Bash, Task, TodoWrite
 ---
 
 # Test-First Development: $1 ($2)
+
+**Note**: For complete feature implementation with TDD, use `/implement-feature` instead.
+This command is for focused test writing on individual components/services.
 
 ## Context
 

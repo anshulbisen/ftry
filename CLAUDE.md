@@ -88,6 +88,166 @@ This project follows a **lean, iterative, customer-focused approach**:
 - **AUTOMATED**: Pre-commit hooks will format, lint, and type-check your code
 - **BEST PRACTICE**: Run `bun run check-all` before pushing to ensure CI will pass
 
+## Expert Agents for Code Review
+
+This project has specialized expert agents configured for comprehensive code reviews and development tasks. The agents have been optimized to eliminate redundancy while maintaining comprehensive coverage.
+
+### Available Expert Agents (16 Total)
+
+#### Core Review & Architecture
+
+1. **senior-architect** - Strategic technical oversight and architectural decisions
+   - System architecture and design patterns
+   - Scalability and performance strategies
+   - Technical debt assessment
+   - Business-technical alignment
+
+2. **frontend-specialist** - React 19, TypeScript, Tailwind CSS expert (merged frontend-expert + react-component-refactor)
+   - Reviews React components, hooks, and patterns
+   - Component refactoring and optimization
+   - TypeScript type safety and best practices
+   - Performance optimization and accessibility
+
+3. **backend-expert** - NestJS 11, Node.js, Bun runtime specialist
+   - Reviews NestJS modules and dependency injection
+   - Validates API design and RESTful patterns
+   - Ensures security best practices
+   - Checks testing coverage and patterns
+
+4. **database-expert** - PostgreSQL 16, Prisma 6 specialist
+   - Reviews database schema design
+   - Validates query performance and indexes
+   - Ensures data integrity and constraints
+   - Checks migration safety and backup strategies
+
+#### Nx Monorepo Management
+
+5. **nx-specialist** - Nx architecture expert (merged nx-architect + nx-refactor)
+   - Library creation and structuring
+   - Architecture refactoring and optimization
+   - Dependency management
+   - Build performance optimization
+
+6. **module-boundaries** - Module boundary violation specialist
+   - Identifies and fixes circular dependencies
+   - Enforces Nx tag-based access control
+   - Fixes ESLint module boundary violations
+
+#### Code Quality & Testing
+
+7. **test-guardian** - Test-Driven Development specialist
+   - Writes tests BEFORE implementation
+   - Ensures 100% test passing
+   - Zero-tolerance for failures
+
+8. **test-refactor** - Test quality and coverage specialist
+   - Improves existing test coverage
+   - Refactors test structure
+   - Implements testing best practices
+
+9. **code-quality-enforcer** - Code standards enforcer
+   - Runs linting, formatting, type checking
+   - Ensures all quality gates pass
+   - Zero-tolerance for violations
+
+10. **type-safety-refactor** - TypeScript type safety specialist
+    - Eliminates 'any' types
+    - Adds missing type annotations
+    - Creates proper interfaces
+
+#### Optimization & Refactoring
+
+11. **performance-optimizer** - Full-stack performance specialist
+    - React rendering optimization
+    - Bundle size reduction
+    - Database query optimization
+    - Caching strategies
+
+12. **code-duplication-detector** - DRY principle enforcer
+    - Detects duplicate code patterns
+    - Extracts reusable utilities
+    - Creates shared components
+
+13. **api-standardizer** - API standardization specialist
+    - Consistent REST/GraphQL patterns
+    - DTO validation
+    - OpenAPI documentation
+
+#### Development Workflow
+
+14. **feature-planner** - Product feature planning specialist
+    - Feature scoping and prioritization
+    - User story creation
+    - Technical planning
+
+15. **git-workflow** - Git workflow specialist
+    - Conventional commits
+    - Branch management
+    - Pull request creation
+
+16. **claude-code-optimizer** - Claude Code configuration specialist
+    - CLAUDE.md maintenance
+    - Tool permission configuration
+    - Workflow optimization
+
+### How to Use Expert Agents
+
+```bash
+# For comprehensive review of a feature
+# Use multiple agents in parallel:
+# - frontend-expert for UI components
+# - backend-expert for API endpoints
+# - database-expert for schema changes
+
+# Example: Review authentication implementation
+# The agents will:
+# 1. Analyze code against best practices
+# 2. Check for SOLID, DRY, KISS principles
+# 3. Validate security and performance
+# 4. Ensure proper testing
+# 5. Update CLAUDE.md documentation
+```
+
+### Agent Review Process
+
+1. **Initial Analysis**: Agent examines relevant files
+2. **Principle Check**: Validates SOLID, DRY, KISS, clean code
+3. **Tech-Specific Review**: Applies framework/library best practices
+4. **Security Audit**: Identifies vulnerabilities and risks
+5. **Performance Review**: Checks for optimization opportunities
+6. **Testing Verification**: Ensures adequate test coverage
+7. **Documentation Update**: Creates/updates CLAUDE.md files
+
+### Expected Outcomes
+
+After running expert agents, you'll receive:
+
+- Detailed code review with issues categorized by severity
+- Specific recommendations with code examples
+- Updated CLAUDE.md documentation for future reference
+- Test coverage reports and missing test identification
+- Performance optimization suggestions
+- Security vulnerability assessments
+
+### Integration with Development Workflow
+
+1. **Feature Development**: Run relevant expert agents after implementation
+2. **PR Review**: Use agents for automated code review before merging
+3. **Refactoring**: Run agents to identify improvement areas
+4. **Documentation**: Agents automatically maintain CLAUDE.md files
+5. **Quality Gates**: Ensure all agent recommendations are addressed
+
+### Agent Documentation
+
+Each agent maintains its own documentation in `.claude/agents/`:
+
+- Core specialists: `frontend-specialist.md`, `backend-expert.md`, `database-expert.md`, `senior-architect.md`
+- Nx management: `nx-specialist.md`, `module-boundaries.md`
+- Testing: `test-guardian.md`, `test-refactor.md`
+- Code quality: `code-quality-enforcer.md`, `type-safety-refactor.md`, `code-duplication-detector.md`
+- Optimization: `performance-optimizer.md`, `api-standardizer.md`
+- Workflow: `feature-planner.md`, `git-workflow.md`, `claude-code-optimizer.md`
+
 ## Package Manager Policy
 
 **This project uses bun exclusively**. No other package manager or runtime is permitted.

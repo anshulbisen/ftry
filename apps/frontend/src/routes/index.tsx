@@ -5,7 +5,7 @@ import { PublicRoute } from './PublicRoute';
 import { ROUTES } from '@/constants/routes';
 
 // Public pages
-import { LandingPage, LoginPage, RegisterPage, ForgotPasswordPage } from '@/pages/public';
+import { LandingPage, LoginPage, ForgotPasswordPage } from '@/pages/public';
 
 // Authenticated pages
 import {
@@ -18,6 +18,9 @@ import {
   ReportsPage,
   SettingsPage,
 } from '@/pages/app';
+
+// Admin pages
+import { Users, Roles, Permissions } from '@/pages/admin';
 
 /**
  * Application router configuration
@@ -39,10 +42,6 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.PUBLIC.LOGIN,
         element: <LoginPage />,
-      },
-      {
-        path: ROUTES.PUBLIC.REGISTER,
-        element: <RegisterPage />,
       },
       {
         path: ROUTES.PUBLIC.FORGOT_PASSWORD,
@@ -91,12 +90,25 @@ export const router = createBrowserRouter([
         path: ROUTES.APP.SETTINGS,
         element: <SettingsPage />,
       },
+      // Admin routes
+      {
+        path: ROUTES.APP.ADMIN_USERS,
+        element: <Users />,
+      },
+      {
+        path: ROUTES.APP.ADMIN_ROLES,
+        element: <Roles />,
+      },
+      {
+        path: ROUTES.APP.ADMIN_PERMISSIONS,
+        element: <Permissions />,
+      },
     ],
   },
 
-  // Catch all - redirect to home
+  // Catch all - redirect to dashboard if authenticated, else home
   {
     path: '*',
-    element: <Navigate to={ROUTES.PUBLIC.HOME} replace />,
+    element: <Navigate to={ROUTES.APP.DASHBOARD} replace />,
   },
 ]);

@@ -47,6 +47,14 @@ lerna-debug.log*
 coverage
 .nyc_output
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+**/*/.env
+**/*/.env.local
+**/*/.env.*.local
+
 # Misc
 *.local
 
@@ -54,3 +62,5 @@ coverage
 docker-compose.override.yml
 .docker
 docker/postgres/data
+
+/generated/prisma

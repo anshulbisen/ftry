@@ -1,0 +1,254 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== TENANT MANAGEMENT ====================
+
+model Tenant {
+  id            String          @id @default(cuid())
+  name          String          @db.VarChar(255)
+  slug          String          @unique @db.VarChar(100) // URL-friendly identifier
+  description   String?         @db.Text
+  logo          String?         @db.VarChar(500) // URL to logo image
+  website       String?         @db.VarChar(255)
+
+  // Subscription & Billing
+  subscriptionPlan    String        @default("free") @db.VarChar(50) // free, basic, premium, enterprise
+  subscriptionStatus  String        @default("active") @db.VarChar(50) // active, suspended, cancelled
+  subscriptionExpiry  DateTime?     @db.Timestamptz
+  maxUsers            Int           @default(5) @db.SmallInt
+
+  // Settings & Preferences
+  settings            Json?         @db.JsonB // Flexible JSON for tenant-specific settings
+  metadata            Json?         @db.JsonB // Additional metadata
+
+  // Status & Timestamps
+  status              String        @default("active") @db.VarChar(50) // active, inactive, suspended
+  createdAt           DateTime      @default(now()) @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @db.Timestamptz
+
+  // Relations
+  users               User[]
+  roles               Role[]
+  auditLogs           AuditLog[]
+
+  @@index([slug])
+  @@index([status])
+}
+
+// ==================== USER MANAGEMENT ====================
+
+model User {
+  id            String          @id @default(cuid())
+  email         String          @unique @db.VarChar(255)
+  password      String          @db.VarChar(255) // Hashed with bcrypt (60 chars)
+
+  // Profile Information
+  firstName     String          @db.VarChar(100)
+  lastName      String          @db.VarChar(100)
+  phone         String?         @db.VarChar(20)
+  avatar        String?         @db.VarChar(500) // URL to avatar image
+
+  // Multi-tenant Association
+  tenantId      String?         // Nullable for super admin
+  tenant        Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Authentication & Security
+  emailVerified       Boolean       @default(false)
+  emailVerificationToken String?    @db.VarChar(255)
+  passwordResetToken     String?    @db.VarChar(255)
+  passwordResetExpiry    DateTime?  @db.Timestamptz
+  lastLogin              DateTime?  @db.Timestamptz
+  loginAttempts          Int        @default(0) @db.SmallInt
+  lockedUntil            DateTime?  @db.Timestamptz
+
+  // Role & Permissions
+  roleId              String
+  role                Role          @relation(fields: [roleId], references: [id])
+  additionalPermissions String[]    @default([]) // Extra permissions beyond role
+
+  // Account Status
+  status              String        @default("active") @db.VarChar(50) // active, inactive, suspended, locked
+  isDeleted           Boolean       @default(false) // Soft delete
+  deletedAt           DateTime?     @db.Timestamptz
+
+  // Metadata & Timestamps
+  metadata            Json?         @db.JsonB // Flexible JSON for user-specific data
+  createdBy           String?       // ID of user who created this account
+  createdAt           DateTime      @default(now()) @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @db.Timestamptz
+
+  // Relations
+  refreshTokens       RefreshToken[]
+  sessions            Session[]
+  auditLogs           AuditLog[]
+  createdUsers        User[]        @relation("UserCreator")
+  creator             User?         @relation("UserCreator", fields: [createdBy], references: [id])
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@index([roleId])
+  @@index([email])
+  @@index([status])
+}
+
+// ==================== AUTHENTICATION ====================
+
+model RefreshToken {
+  id            String          @id @default(cuid())
+  token         String          @unique @db.VarChar(500)
+
+  // User Association
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Token Details
+  deviceInfo    String?         @db.VarChar(255) // User agent or device identifier
+  ipAddress     String?         @db.VarChar(45) // IPv4 (15) or IPv6 (45)
+
+  // Expiry & Status
+  expiresAt     DateTime        @db.Timestamptz
+  revokedAt     DateTime?       @db.Timestamptz
+  revokedReason String?         @db.VarChar(255)
+  isRevoked     Boolean         @default(false)
+
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model Session {
+  id            String          @id @default(cuid())
+
+  // User Association
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Session Details
+  deviceInfo    String?         @db.VarChar(255)
+  ipAddress     String?         @db.VarChar(45)
+  userAgent     String?         @db.VarChar(500)
+
+  // Activity Tracking
+  lastActivity  DateTime        @default(now()) @db.Timestamptz
+  expiresAt     DateTime        @db.Timestamptz
+
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ==================== AUTHORIZATION ====================
+
+model Role {
+  id            String          @id @default(cuid())
+  name          String          @db.VarChar(100)
+  description   String?         @db.Text
+
+  // Multi-tenant Association
+  tenantId      String?         // Nullable for system roles
+  tenant        Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Role Type
+  type          String          @default("custom") @db.VarChar(50) // system, tenant, custom
+  level         Int             @default(0) @db.SmallInt // Hierarchy level (higher = more privileges)
+
+  // Permissions
+  permissions   String[]        @default([]) // Array of permission strings
+
+  // Metadata
+  metadata      Json?           @db.JsonB
+  isSystem      Boolean         @default(false) // Cannot be modified/deleted
+  isDefault     Boolean         @default(false) // Assigned to new users by default
+
+  // Status & Timestamps
+  status        String          @default("active") @db.VarChar(50) // active, inactive
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+  updatedAt     DateTime        @updatedAt @db.Timestamptz
+
+  // Relations
+  users         User[]
+
+  @@unique([name, tenantId])
+  @@index([tenantId])
+  @@index([type])
+  @@index([status])
+}
+
+model Permission {
+  id            String          @id @default(cuid())
+  name          String          @unique @db.VarChar(100) // e.g., "appointments:create"
+  description   String          @db.Text
+
+  // Permission Details
+  resource      String          @db.VarChar(100) // e.g., "appointments"
+  action        String          @db.VarChar(50) // e.g., "create", "read", "update", "delete"
+
+  // Categorization
+  category      String          @db.VarChar(100) // e.g., "appointments", "clients", "billing", "reports"
+
+  // Metadata
+  metadata      Json?           @db.JsonB
+  isSystem      Boolean         @default(true) // System-defined permission
+
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+  updatedAt     DateTime        @updatedAt @db.Timestamptz
+
+  @@unique([resource, action])
+  @@index([category])
+  @@index([resource])
+}
+
+// ==================== AUDIT & LOGGING ====================
+
+model AuditLog {
+  id            String          @id @default(cuid())
+
+  // User & Tenant Context
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenantId      String?
+  tenant        Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Action Details
+  action        String          @db.VarChar(100) // e.g., "user.login", "appointment.create"
+  resource      String?         @db.VarChar(100) // e.g., "user", "appointment"
+  resourceId    String?         // ID of the affected resource
+
+  // Request Information
+  method        String?         @db.VarChar(10) // HTTP method
+  path          String?         @db.VarChar(500) // API endpoint
+  statusCode    Int?            @db.SmallInt // HTTP status code
+
+  // Context
+  ipAddress     String?         @db.VarChar(45)
+  userAgent     String?         @db.VarChar(500)
+
+  // Data
+  oldData       Json?           @db.JsonB // State before change
+  newData       Json?           @db.JsonB // State after change
+  metadata      Json?           @db.JsonB // Additional context
+
+  // Result
+  success       Boolean         @default(true)
+  errorMessage  String?         @db.Text
+
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}

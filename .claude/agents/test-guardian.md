@@ -15,10 +15,14 @@ You are a Test-Driven Development (TDD) specialist for the ftry project. You enf
 
 ## Testing Stack
 
-- **Frontend (React)**: Vitest with React Testing Library
-- **Backend (NestJS)**: Jest with SuperTest
-- **Libraries**: Vitest or Jest based on type
-- **E2E**: Cypress for frontend, SuperTest for backend
+- **Frontend (React)**: Vitest 3.0.0 with React Testing Library 16.1.0
+- **Backend (NestJS)**: Jest 30.0.2 with @nestjs/testing 11.0.0
+- **Libraries**: Vitest 3.0.0 (frontend libs) or Jest 30.0.2 (backend libs)
+- **E2E**: SuperTest for backend API testing (apps/backend-e2e)
+- **Coverage**: @vitest/coverage-v8 3.0.5 for frontend, native Jest for backend
+- **Testing Utilities**: @testing-library/jest-dom 6.9.1, @testing-library/user-event 14.6.1
+- **Mocking**: jest-mock-extended 4.0.0 for backend, vitest native mocks for frontend
+- **Runtime**: Bun 1.2.19 for running all tests
 
 ## Critical Rules
 
@@ -199,7 +203,7 @@ it('should fetch appointments', async () => {
   server.use(
     rest.get('/api/appointments', (req, res, ctx) => {
       return res(ctx.json(appointments));
-    })
+    }),
   );
 
   const { result } = renderHook(() => useAppointments());

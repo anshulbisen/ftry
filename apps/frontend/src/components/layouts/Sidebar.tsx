@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Users,
@@ -9,68 +9,124 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LogOut,
+  Bell,
+  User,
+  Shield,
+  Key,
+  UserCog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useUIStore } from '@/store';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useUIStore, useAuthStore } from '@/store';
 import { ROUTES } from '@/constants/routes';
 import { type NavItem } from '@/types';
 
-const navigationItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: ROUTES.APP.DASHBOARD,
-    icon: BarChart3,
-  },
-  {
-    title: 'Appointments',
-    href: ROUTES.APP.APPOINTMENTS,
-    icon: Calendar,
-  },
-  {
-    title: 'Clients',
-    href: ROUTES.APP.CLIENTS,
-    icon: Users,
-  },
-  {
-    title: 'Staff',
-    href: ROUTES.APP.STAFF,
-    icon: UserCircle,
-  },
-  {
-    title: 'Services',
-    href: ROUTES.APP.SERVICES,
-    icon: Scissors,
-  },
-  {
-    title: 'Billing',
-    href: ROUTES.APP.BILLING,
-    icon: Receipt,
-  },
-  {
-    title: 'Reports',
-    href: ROUTES.APP.REPORTS,
-    icon: BarChart3,
-  },
-  {
+const getNavigationItems = (isSuperAdmin: boolean, isTenantAdmin: boolean): NavItem[] => {
+  const baseItems: NavItem[] = [
+    {
+      title: 'Dashboard',
+      href: ROUTES.APP.DASHBOARD,
+      icon: BarChart3,
+    },
+    {
+      title: 'Appointments',
+      href: ROUTES.APP.APPOINTMENTS,
+      icon: Calendar,
+    },
+    {
+      title: 'Clients',
+      href: ROUTES.APP.CLIENTS,
+      icon: Users,
+    },
+    {
+      title: 'Staff',
+      href: ROUTES.APP.STAFF,
+      icon: UserCircle,
+    },
+    {
+      title: 'Services',
+      href: ROUTES.APP.SERVICES,
+      icon: Scissors,
+    },
+    {
+      title: 'Billing',
+      href: ROUTES.APP.BILLING,
+      icon: Receipt,
+    },
+    {
+      title: 'Reports',
+      href: ROUTES.APP.REPORTS,
+      icon: BarChart3,
+    },
+  ];
+
+  // Add admin section for super admins and tenant admins
+  if (isSuperAdmin || isTenantAdmin) {
+    baseItems.push(
+      {
+        title: 'Admin',
+        href: '',
+        icon: Shield,
+        isSection: true,
+      },
+      {
+        title: 'Users',
+        href: ROUTES.APP.ADMIN_USERS,
+        icon: UserCog,
+      },
+      {
+        title: 'Roles',
+        href: ROUTES.APP.ADMIN_ROLES,
+        icon: Shield,
+      },
+      {
+        title: 'Permissions',
+        href: ROUTES.APP.ADMIN_PERMISSIONS,
+        icon: Key,
+      },
+    );
+  }
+
+  baseItems.push({
     title: 'Settings',
     href: ROUTES.APP.SETTINGS,
     icon: Settings,
-  },
-];
+  });
+
+  return baseItems;
+};
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { sidebarCollapsed, toggleSidebarCollapsed } = useUIStore();
+  const { user, logout, isSuperAdmin, isTenantAdmin } = useAuthStore();
+
+  const navigationItems = getNavigationItems(isSuperAdmin(), isTenantAdmin());
 
   const isActive = (href: string) => {
+    if (!href) return false; // Skip section headers
     return location.pathname === href || location.pathname.startsWith(href + '/');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate(ROUTES.PUBLIC.LOGIN);
   };
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen border-r border-border bg-background transition-all duration-300',
+        'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-background transition-all duration-300',
         sidebarCollapsed ? 'w-16' : 'w-64',
       )}
     >
@@ -97,11 +153,31 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-1 p-2">
-        {navigationItems.map((item) => {
+      <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
+        {navigationItems.map((item, index) => {
           const Icon = item.icon;
           const active = isActive(item.href);
 
+          // Render section header
+          if (item.isSection) {
+            return (
+              <div
+                key={`section-${index}`}
+                className={cn('mt-4 px-3 py-2', sidebarCollapsed ? 'border-t border-border' : '')}
+              >
+                {!sidebarCollapsed && Icon && (
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {item.title}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Render navigation item
           return (
             <Link
               key={item.href}
@@ -121,6 +197,85 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Bottom Section: Notifications & User Menu */}
+      <div className="border-t border-border p-2 space-y-2">
+        {/* Notifications */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                'relative w-full',
+                sidebarCollapsed ? 'justify-center px-2' : 'justify-start',
+              )}
+            >
+              <Bell className="h-5 w-5 shrink-0" />
+              {!sidebarCollapsed && <span className="ml-3">Notifications</span>}
+              {/* Notification badge */}
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-80 mb-2">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="p-2 text-sm text-muted-foreground">
+              <p className="py-4 text-center">No new notifications</p>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn('w-full', sidebarCollapsed ? 'justify-center px-2' : 'justify-start')}
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                {user?.firstName?.charAt(0).toUpperCase() ||
+                  user?.email?.charAt(0).toUpperCase() ||
+                  'U'}
+              </div>
+              {!sidebarCollapsed && (
+                <div className="ml-3 flex-1 overflow-hidden text-left">
+                  <p className="truncate text-sm font-medium">
+                    {user?.firstName} {user?.lastName || user?.email || 'User'}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{user?.email || ''}</p>
+                </div>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-56 mb-2">
+            <DropdownMenuLabel>
+              <div>
+                <p className="font-medium">
+                  {user?.firstName} {user?.lastName || user?.email || 'User'}
+                </p>
+                <p className="text-xs font-normal text-muted-foreground">{user?.email || ''}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate(ROUTES.APP.SETTINGS_PROFILE)}>
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(ROUTES.APP.SETTINGS)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-destructive focus:text-destructive"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </aside>
   );
 }

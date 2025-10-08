@@ -1,24 +1,26 @@
 /**
  * Common TypeScript type definitions
+ *
+ * NOTE: Authentication types are imported from @ftry/shared/types
+ * Do not duplicate User, AuthState, or other auth-related types here.
  */
 
-// User and Authentication types
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatar?: string;
-  businessId?: string;
-}
-
-export type UserRole = 'owner' | 'admin' | 'staff' | 'receptionist';
-
-export interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-}
+// Re-export shared authentication types for convenience
+export type {
+  User,
+  SafeUser,
+  AuthState,
+  Role,
+  Tenant,
+  Permission,
+  UserWithRole,
+  UserWithTenant,
+  AuthResponse,
+  LoginResponse,
+  RegisterResponse,
+  ApiResponse,
+  ApiError,
+} from '@ftry/shared/types';
 
 // UI State types
 export interface UIState {
@@ -34,6 +36,7 @@ export interface NavItem {
   icon?: React.ComponentType<{ className?: string }>;
   badge?: string | number;
   children?: NavItem[];
+  isSection?: boolean;
 }
 
 export interface Breadcrumb {

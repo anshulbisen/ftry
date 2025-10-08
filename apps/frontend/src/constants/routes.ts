@@ -44,6 +44,11 @@ export const ROUTES = {
     // Reports
     REPORTS: '/app/reports',
 
+    // Admin
+    ADMIN_USERS: '/app/admin/users',
+    ADMIN_ROLES: '/app/admin/roles',
+    ADMIN_PERMISSIONS: '/app/admin/permissions',
+
     // Settings
     SETTINGS: '/app/settings',
     SETTINGS_PROFILE: '/app/settings/profile',
