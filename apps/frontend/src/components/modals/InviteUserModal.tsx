@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert } from '@/components/ui/alert';
-import { userApi, roleApi } from '@ftry/frontend/auth';
+import { userApi, roleApi } from '@/lib/auth';
 import { useAuthStore } from '@/store';
 import { getErrorMessage } from '@ftry/shared/utils';
 import type { Role } from '@ftry/shared/types';

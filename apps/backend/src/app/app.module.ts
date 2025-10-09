@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from '@ftry/backend/logger';
 import { AuthModule } from '@ftry/backend/auth';
+import { AdminModule } from 'admin';
 import { PrismaModule } from '@ftry/shared/prisma';
 import { CacheModule } from '@ftry/backend/cache';
 import { HealthModule } from '@ftry/backend/health';
@@ -56,6 +57,8 @@ import { validateEnvironment } from '../config/env.validation';
     // Observability: Metrics, Logs, and Tracing
     MonitoringModule,
     AuthModule,
+    // Admin module - MUST come after PrismaModule and AuthModule
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, CsrfService],

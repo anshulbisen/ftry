@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store';
-import { roleApi, permissionApi } from '@ftry/frontend/auth';
+import { roleApi, permissionApi } from '@/lib/auth';
 import { getErrorMessage } from '@ftry/shared/utils';
 import type { Role, Permission } from '@ftry/shared/types';
 import { Button } from '@/components/ui/button';

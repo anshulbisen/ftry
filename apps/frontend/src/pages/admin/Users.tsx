@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuthStore } from '@/store';
-import { userApi } from '@ftry/frontend/auth';
+import { userApi } from '@/lib/auth';
 import { getErrorMessage } from '@ftry/shared/utils';
 import type { SafeUser } from '@ftry/shared/types';
 import { Button } from '@/components/ui/button';

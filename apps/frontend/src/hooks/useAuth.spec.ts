@@ -1,16 +1,20 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuth } from './useAuth';
-import { useAuthStore } from '@ftry/frontend/auth';
-import { authApi } from '@ftry/frontend/auth';
+import { useAuthStore } from '@/store';
+import { authApi } from '@/lib/auth';
 import type { SafeUser, AuthResponse } from '@ftry/shared/types';
 
 // Mock dependencies
-vi.mock('@ftry/frontend/auth', async () => {
-  const actual = await vi.importActual('@ftry/frontend/auth');
+vi.mock('@/store', async () => {
   return {
-    ...actual,
     useAuthStore: vi.fn(),
+    useUIStore: vi.fn(),
+  };
+});
+
+vi.mock('@/lib/auth', async () => {
+  return {
     authApi: {
       login: vi.fn(),
       register: vi.fn(),
@@ -18,6 +22,9 @@ vi.mock('@ftry/frontend/auth', async () => {
       getCurrentUser: vi.fn(),
       refreshToken: vi.fn(),
     },
+    userApi: {},
+    roleApi: {},
+    permissionApi: {},
   };
 });
 

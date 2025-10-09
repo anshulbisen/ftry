@@ -15,16 +15,7 @@
       "@ftry/shared/utils": ["../../libs/shared/utils/src/index.ts"],
       "@ftry/shared/constants": ["../../libs/shared/constants/src/index.ts"],
       "@ftry/shared/prisma": ["../../libs/shared/prisma/src/index.ts"],
-      "@ftry/shared/util-formatters": ["../../libs/shared/util-formatters/src/index.ts"],
-      "@ftry/frontend/auth": ["../../libs/frontend/auth/src/index.ts"],
-      "@ftry/auth/api": ["../../libs/auth/api/src/index.ts"],
-      "@ftry/auth/data-access": ["../../libs/auth/data-access/src/index.ts"],
-      "@ftry/auth/data-access-client": ["../../libs/auth/data-access-client/src/index.ts"],
-      "@ftry/auth/feature-login": ["../../libs/auth/feature-login/src/index.ts"],
-      "@ftry/auth/feature-user-management": [
-        "../../libs/auth/feature-user-management/src/index.ts"
-      ],
-      "@ftry/auth/ui-components": ["../../libs/auth/ui-components/src/index.ts"]
+      "@ftry/shared/util-formatters": ["../../libs/shared/util-formatters/src/index.ts"]
     }
   },
   "exclude": [

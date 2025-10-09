@@ -40,13 +40,6 @@ VALIDATION_RULES = [
         "warn"
     ),
 
-    # Prefer specialized tools over bash commands
-    (
-        r'\b(sed|awk)\b',
-        "ℹ️ Use the Edit tool instead of 'sed/awk' for file modifications",
-        "warn"
-    ),
-
     # Git commit best practices
     (
         r'git\s+commit.*--no-verify',

@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { seedAdminPermissions } from './seeds/admin-permissions.seed';
+import { seedAdminRoles } from './seeds/admin-roles.seed';
+import { seedSuperAdminUser } from './seeds/super-admin-user.seed';
 
 const prisma = new PrismaClient();
 
@@ -236,8 +239,12 @@ async function main() {
     await prisma.tenant.deleteMany();
   }
 
-  // Create permissions
-  console.log('📝 Creating permissions...');
+  // ==================== ADMIN SYSTEM SEEDS ====================
+  // Seed admin permissions (unified admin system)
+  await seedAdminPermissions(prisma);
+
+  // Create permissions (existing tenant-scoped permissions)
+  console.log('📝 Creating tenant-scoped permissions...');
   for (const permission of SYSTEM_PERMISSIONS) {
     await prisma.permission.upsert({
       where: { name: permission.name },
@@ -246,8 +253,14 @@ async function main() {
     });
   }
 
-  // Create system roles
-  console.log('👥 Creating system roles...');
+  // Seed admin roles (unified admin system)
+  await seedAdminRoles(prisma);
+
+  // Seed super admin user
+  await seedSuperAdminUser(prisma);
+
+  // Create system roles (existing tenant-scoped roles)
+  console.log('👥 Creating tenant-scoped system roles...');
   const roles: Record<string, any> = {};
   for (const roleData of SYSTEM_ROLES) {
     // Check if role already exists
@@ -341,17 +354,20 @@ async function main() {
     const demoPassword = process.env['DEMO_PASSWORD'] || 'DevPassword123!@#';
     const hashedPassword = await bcrypt.hash(demoPassword, 12);
 
-    // Super Admin (no tenant) - can access everything
-    await prisma.user.create({
-      data: {
-        email: 'super@ftry.com',
-        password: hashedPassword,
-        firstName: 'Super',
-        lastName: 'Admin',
-        roleId: roles['super_admin'].id,
-        emailVerified: true,
-      },
+    // Note: Super Admin is already created by seedSuperAdminUser()
+    // We only create demo tenant users here
+
+    // Get admin roles created by seedAdminRoles
+    const tenantOwnerRole = await prisma.role.findFirst({
+      where: { name: 'Tenant Owner', tenantId: null },
     });
+    const tenantAdminRole = await prisma.role.findFirst({
+      where: { name: 'Tenant Admin', tenantId: null },
+    });
+
+    if (!tenantOwnerRole || !tenantAdminRole) {
+      throw new Error('Admin roles not found. Check seedAdminRoles() execution.');
+    }
 
     // ========== TENANT 1 USERS - Glamour Salon ==========
 
@@ -364,7 +380,7 @@ async function main() {
         lastName: 'Sharma',
         phone: '+919876543210',
         tenantId: tenant1.id,
-        roleId: roles['tenant_owner'].id,
+        roleId: tenantOwnerRole.id,
         emailVerified: true,
       },
     });
@@ -378,7 +394,7 @@ async function main() {
         lastName: 'Verma',
         phone: '+919876543211',
         tenantId: tenant1.id,
-        roleId: roles['tenant_admin'].id,
+        roleId: tenantAdminRole.id,
         emailVerified: true,
         createdBy: tenant1Owner.id,
       },
@@ -395,7 +411,7 @@ async function main() {
         lastName: 'Patel',
         phone: '+919876543220',
         tenantId: tenant2.id,
-        roleId: roles['tenant_owner'].id,
+        roleId: tenantOwnerRole.id,
         emailVerified: true,
       },
     });
@@ -409,7 +425,7 @@ async function main() {
         lastName: 'Singh',
         phone: '+919876543221',
         tenantId: tenant2.id,
-        roleId: roles['tenant_admin'].id,
+        roleId: tenantAdminRole.id,
         emailVerified: true,
         createdBy: tenant2Owner.id,
       },

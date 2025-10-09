@@ -34,19 +34,15 @@
       "@ftry/backend/monitoring": ["libs/backend/monitoring/src/index.ts"],
       "@ftry/backend/queue": ["libs/backend/queue/src/index.ts"],
       "@ftry/backend/redis": ["libs/backend/redis/src/index.ts"],
-      "@ftry/frontend/auth": ["libs/frontend/auth/src/index.ts"],
-      "@ftry/frontend/hooks": ["libs/frontend/hooks/src/index.ts"],
-      "@ftry/frontend/test-utils": ["libs/frontend/test-utils/src/index.ts"],
-      "@ftry/frontend/ui-components": ["libs/frontend/ui-components/src/index.ts"],
       "@ftry/shared/constants": ["libs/shared/constants/src/index.ts"],
       "@ftry/shared/prisma": ["libs/shared/prisma/src/index.ts"],
       "@ftry/shared/types": ["libs/shared/types/src/index.ts"],
       "@ftry/shared/util-formatters": ["libs/shared/util-formatters/src/index.ts"],
       "@ftry/shared/utils": ["libs/shared/utils/src/index.ts"],
+      "admin": ["libs/backend/admin/src/index.ts"],
       "monitoring": ["libs/backend/monitoring/src/index.ts"],
       "redis": ["libs/backend/redis/src/index.ts"],
-      "util-encryption": ["libs/shared/util-encryption/src/index.ts"],
-      "@ftry/frontend/api-client": ["libs/frontend/api-client/src/index.ts"]
+      "util-encryption": ["libs/shared/util-encryption/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

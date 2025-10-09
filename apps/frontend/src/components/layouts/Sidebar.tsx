@@ -14,8 +14,8 @@ import {
   Bell,
   User,
   Shield,
-  Key,
   UserCog,
+  Building,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -88,14 +88,14 @@ const getNavigationItems = (isSuperAdmin: boolean, isTenantAdmin: boolean): NavI
         icon: UserCog,
       },
       {
+        title: 'Tenants',
+        href: ROUTES.APP.ADMIN_TENANTS,
+        icon: Building,
+      },
+      {
         title: 'Roles',
         href: ROUTES.APP.ADMIN_ROLES,
         icon: Shield,
-      },
-      {
-        title: 'Permissions',
-        href: ROUTES.APP.ADMIN_PERMISSIONS,
-        icon: Key,
       },
     );
   }

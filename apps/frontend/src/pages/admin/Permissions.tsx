@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { permissionApi } from '@ftry/frontend/auth';
+import { permissionApi } from '@/lib/auth';
 import { getErrorMessage } from '@ftry/shared/utils';
 import type { Permission } from '@ftry/shared/types';
 import { Button } from '@/components/ui/button';

@@ -2,9 +2,11 @@ import { RouterProvider } from 'react-router-dom';
 import { useEffect } from 'react';
 import { router } from '@/routes';
 import { useUIStore, useAuthStore } from '@/store';
-import { authApi } from '@ftry/frontend/auth';
+import { authApi } from '@/lib/auth';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { prefetchCsrfToken } from '@/lib/csrf';
+import { prefetchCsrfToken } from '@/lib/api';
+import { QueryProvider } from '@/lib/api';
+import { Toaster } from 'sonner';
 
 export function App() {
   const { setTheme } = useUIStore();
@@ -68,7 +70,10 @@ export function App() {
 
   return (
     <ErrorBoundary>
-      <RouterProvider router={router} />
+      <QueryProvider>
+        <RouterProvider router={router} />
+        <Toaster position="top-right" richColors />
+      </QueryProvider>
     </ErrorBoundary>
   );
 }

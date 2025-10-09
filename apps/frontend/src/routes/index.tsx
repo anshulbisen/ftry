@@ -5,6 +5,7 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { PublicRoute } from './PublicRoute';
 import { ROUTES } from '@/constants/routes';
 import { RouteLoadingFallback } from '@/components/common/RouteLoadingFallback';
+import { PermissionGate } from '@/components/admin/common';
 
 // Lazy load all pages for optimal bundle splitting
 // Import directly from individual files to avoid barrel export bundling
@@ -45,11 +46,17 @@ const SettingsPage = lazy(() =>
   import('@/pages/app/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
 
-// Admin pages
-const Users = lazy(() => import('@/pages/admin/Users').then((m) => ({ default: m.Users })));
-const Roles = lazy(() => import('@/pages/admin/Roles').then((m) => ({ default: m.Roles })));
-const Permissions = lazy(() =>
-  import('@/pages/admin/Permissions').then((m) => ({ default: m.Permissions })),
+// Admin pages - Using admin components
+const UserManagement = lazy(() =>
+  import('@/components/admin/users/UserManagement').then((m) => ({ default: m.UserManagement })),
+);
+const TenantManagement = lazy(() =>
+  import('@/components/admin/tenants/TenantManagement').then((m) => ({
+    default: m.TenantManagement,
+  })),
+);
+const RoleManagement = lazy(() =>
+  import('@/components/admin/roles/RoleManagement').then((m) => ({ default: m.RoleManagement })),
 );
 
 /**
@@ -165,29 +172,35 @@ export const router = createBrowserRouter([
           </Suspense>
         ),
       },
-      // Admin routes
+      // Admin routes - permission-gated
       {
         path: ROUTES.APP.ADMIN_USERS,
         element: (
-          <Suspense fallback={<RouteLoadingFallback />}>
-            <Users />
-          </Suspense>
+          <PermissionGate permissions={['users:read:all', 'users:read:own']}>
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <UserManagement />
+            </Suspense>
+          </PermissionGate>
+        ),
+      },
+      {
+        path: ROUTES.APP.ADMIN_TENANTS,
+        element: (
+          <PermissionGate permissions={['tenants:read:all', 'tenants:read:own']}>
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <TenantManagement />
+            </Suspense>
+          </PermissionGate>
         ),
       },
       {
         path: ROUTES.APP.ADMIN_ROLES,
         element: (
-          <Suspense fallback={<RouteLoadingFallback />}>
-            <Roles />
-          </Suspense>
-        ),
-      },
-      {
-        path: ROUTES.APP.ADMIN_PERMISSIONS,
-        element: (
-          <Suspense fallback={<RouteLoadingFallback />}>
-            <Permissions />
-          </Suspense>
+          <PermissionGate permissions={['roles:read:all', 'roles:read:own']}>
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <RoleManagement />
+            </Suspense>
+          </PermissionGate>
         ),
       },
     ],

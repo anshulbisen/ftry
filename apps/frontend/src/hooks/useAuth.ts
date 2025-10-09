@@ -1,5 +1,5 @@
-import { useAuthStore } from '@ftry/frontend/auth';
-import { authApi } from '@ftry/frontend/auth';
+import { useAuthStore } from '@/store';
+import { authApi } from '@/lib/auth';
 import type { SafeUser } from '@ftry/shared/types';
 
 /**

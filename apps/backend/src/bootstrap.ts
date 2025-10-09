@@ -122,6 +122,10 @@ export async function bootstrap() {
     .addTag('Appointments', 'Appointment management')
     .addTag('Clients', 'Client management')
     .addTag('Billing', 'Billing and invoicing')
+    .addTag('Admin - Tenants', 'Tenant administration (permission-based)')
+    .addTag('Admin - Users', 'User administration (permission-based)')
+    .addTag('Admin - Roles', 'Role management (permission-based)')
+    .addTag('Admin - Permissions', 'Permission viewing and role assignment')
     .addServer('http://localhost:3001', 'Development server')
     .addServer('https://api.ftry.in', 'Production server')
     .build();

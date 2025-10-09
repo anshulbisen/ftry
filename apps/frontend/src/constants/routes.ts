@@ -46,8 +46,8 @@ export const ROUTES = {
 
     // Admin
     ADMIN_USERS: '/app/admin/users',
+    ADMIN_TENANTS: '/app/admin/tenants',
     ADMIN_ROLES: '/app/admin/roles',
-    ADMIN_PERMISSIONS: '/app/admin/permissions',
 
     // Settings
     SETTINGS: '/app/settings',
