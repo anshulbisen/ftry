@@ -116,11 +116,14 @@ describe('JwtStrategy RLS Integration', () => {
     });
 
     // Create test users for each tenant
+    // Valid bcrypt hash (60 chars) for password "test123"
+    const validBcryptHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWnL0NeM4W2';
+
     const user1 = await prisma.user.upsert({
       where: { email: 'tenant1@test.com' },
       create: {
         email: 'tenant1@test.com',
-        password: '$2b$12$hashedpassword',
+        password: validBcryptHash,
         firstName: 'Tenant1',
         lastName: 'User',
         tenantId: TENANT_1_ID,
@@ -135,7 +138,7 @@ describe('JwtStrategy RLS Integration', () => {
       where: { email: 'tenant2@test.com' },
       create: {
         email: 'tenant2@test.com',
-        password: '$2b$12$hashedpassword',
+        password: validBcryptHash,
         firstName: 'Tenant2',
         lastName: 'User',
         tenantId: TENANT_2_ID,
@@ -321,11 +324,14 @@ describe('JwtStrategy RLS Integration', () => {
       // Create super admin user (tenantId = null)
       await prisma.setTenantContext(null);
 
+      // Valid bcrypt hash (60 chars) for password "test123"
+      const validBcryptHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWnL0NeM4W2';
+
       const superAdmin = await prisma.user.upsert({
         where: { email: 'superadmin@test.com' },
         create: {
           email: 'superadmin@test.com',
-          password: '$2b$12$hashedpassword',
+          password: validBcryptHash,
           firstName: 'Super',
           lastName: 'Admin',
           tenantId: null, // Super admin has no tenant
@@ -339,7 +345,9 @@ describe('JwtStrategy RLS Integration', () => {
 
     afterAll(async () => {
       await prisma.setTenantContext(null);
-      await prisma.user.delete({ where: { id: superAdminId } });
+      if (superAdminId) {
+        await prisma.user.delete({ where: { id: superAdminId } });
+      }
     });
 
     it('should allow super admin to see all tenant data', async () => {

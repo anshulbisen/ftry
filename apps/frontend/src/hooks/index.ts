@@ -3,3 +3,4 @@
  */
 
 export { useAuth } from './useAuth';
+export { useThemeEffect } from './useThemeEffect';

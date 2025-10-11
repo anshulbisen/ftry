@@ -5,7 +5,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@ftry/shared/prisma';
+import { UserWithPermissions, Role } from '@ftry/shared/types';
 import { DataScopingService } from './data-scoping.service';
+import { CreateRoleDto, UpdateRoleDto } from '../dto/role';
+import { requirePermission, requireAnyPermission } from '../utils/permission.utils';
 
 /**
  * Role Service
@@ -45,9 +48,15 @@ export class RoleService {
    * - Super admin: sees all roles (system + all tenant roles)
    * - Tenant admin: sees only their tenant roles (not system roles)
    */
-  async findAll(currentUser: any, filters?: any) {
+  async findAll(
+    currentUser: UserWithPermissions,
+    filters?: Record<string, unknown>,
+  ): Promise<Role[]> {
     // Build base query
-    const baseQuery: any = {
+    const baseQuery: {
+      where: Record<string, unknown>;
+      orderBy: { level: 'desc' };
+    } = {
       where: filters || {},
       orderBy: { level: 'desc' as const },
     };
@@ -61,7 +70,7 @@ export class RoleService {
   /**
    * Find role by ID with permission check
    */
-  async findOne(currentUser: any, id: string) {
+  async findOne(currentUser: UserWithPermissions, id: string): Promise<Role> {
     const role = await this.prisma.role.findUnique({
       where: { id },
     });
@@ -71,13 +80,7 @@ export class RoleService {
     }
 
     // Check if user can access this role
-    const canAccess =
-      this.scopingService.canAccessEntity(currentUser, role, 'roles:read:all') ||
-      this.scopingService.canAccessEntity(currentUser, role, 'roles:read:own');
-
-    if (!canAccess) {
-      throw new ForbiddenException('Cannot access this role');
-    }
+    requirePermission(this.scopingService, currentUser, role, 'read', 'roles');
 
     return role;
   }
@@ -87,7 +90,7 @@ export class RoleService {
    * - Super admin: can create system or tenant roles
    * - Tenant admin: can create only tenant roles
    */
-  async create(currentUser: any, dto: any) {
+  async create(currentUser: UserWithPermissions, dto: CreateRoleDto): Promise<Role> {
     const { type, tenantId, permissions = [] } = dto;
 
     // Validate permission format
@@ -95,9 +98,8 @@ export class RoleService {
 
     // Validate system role creation
     if (type === 'system') {
-      if (!currentUser.permissions.includes('roles:create:system')) {
-        throw new ForbiddenException('Only super admins can create system roles');
-      }
+      requireAnyPermission(currentUser, ['roles:create:system']);
+
       // System roles must have null tenantId
       if (tenantId !== null && tenantId !== undefined) {
         throw new BadRequestException('System roles must have null tenantId');
@@ -143,7 +145,11 @@ export class RoleService {
    * - Super admin: can update any role (except system-protected)
    * - Tenant admin: can update only tenant roles (not system roles)
    */
-  async update(currentUser: any, roleId: string, dto: any) {
+  async update(
+    currentUser: UserWithPermissions,
+    roleId: string,
+    dto: UpdateRoleDto,
+  ): Promise<Role> {
     // Get role to check access
     const role = await this.prisma.role.findUnique({
       where: { id: roleId },
@@ -161,12 +167,15 @@ export class RoleService {
     }
 
     // Check if current user can update this role
-    const canUpdate =
-      this.scopingService.canAccessEntity(currentUser, role, 'roles:update:system') ||
-      this.scopingService.canAccessEntity(currentUser, role, 'roles:update:tenant');
+    requireAnyPermission(currentUser, ['roles:update:system', 'roles:update:tenant']);
 
-    if (!canUpdate) {
-      throw new ForbiddenException('Cannot update this role');
+    // Additional check for tenant-level permissions
+    if (
+      role.tenantId !== currentUser.tenantId &&
+      currentUser.tenantId !== null &&
+      !this.scopingService.canAccessEntity(currentUser, role, 'roles:update:system')
+    ) {
+      throw new ForbiddenException('Cannot update roles in other tenants');
     }
 
     // Validate permissions if provided
@@ -175,7 +184,7 @@ export class RoleService {
     }
 
     // Prepare update data
-    const updateData: any = {};
+    const updateData: Partial<UpdateRoleDto> = {};
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.description !== undefined) updateData.description = dto.description;
     if (dto.level !== undefined) updateData.level = dto.level;
@@ -193,7 +202,7 @@ export class RoleService {
    * - Cannot delete default roles
    * - Cannot delete role if users are assigned to it
    */
-  async delete(currentUser: any, roleId: string) {
+  async delete(currentUser: UserWithPermissions, roleId: string): Promise<Role> {
     // Get role with user count
     const role = await this.prisma.role.findUnique({
       where: { id: roleId },
@@ -230,11 +239,7 @@ export class RoleService {
     }
 
     // Check if current user can delete this role
-    const canDelete = this.scopingService.canAccessEntity(currentUser, role, 'roles:delete');
-
-    if (!canDelete) {
-      throw new ForbiddenException('Cannot delete this role');
-    }
+    requirePermission(this.scopingService, currentUser, role, 'delete', 'roles');
 
     return this.prisma.role.delete({
       where: { id: roleId },
@@ -244,7 +249,11 @@ export class RoleService {
   /**
    * Assign permissions to role
    */
-  async assignPermissions(currentUser: any, roleId: string, permissions: string[]) {
+  async assignPermissions(
+    currentUser: UserWithPermissions,
+    roleId: string,
+    permissions: string[],
+  ): Promise<Role> {
     // Get role to check access
     const role = await this.prisma.role.findUnique({
       where: { id: roleId },
@@ -260,12 +269,15 @@ export class RoleService {
     }
 
     // Check if current user can update this role
-    const canUpdate =
-      this.scopingService.canAccessEntity(currentUser, role, 'roles:update:system') ||
-      this.scopingService.canAccessEntity(currentUser, role, 'roles:update:tenant');
+    requireAnyPermission(currentUser, ['roles:update:system', 'roles:update:tenant']);
 
-    if (!canUpdate) {
-      throw new ForbiddenException('Cannot update this role');
+    // Additional check for tenant-level permissions
+    if (
+      role.tenantId !== currentUser.tenantId &&
+      currentUser.tenantId !== null &&
+      !this.scopingService.canAccessEntity(currentUser, role, 'roles:update:system')
+    ) {
+      throw new ForbiddenException('Cannot update roles in other tenants');
     }
 
     // Validate permission format

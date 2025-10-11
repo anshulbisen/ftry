@@ -74,7 +74,7 @@ export class AuthService {
         template: 'email-verification',
         data: {
           name: `${user.firstName} ${user.lastName}`,
-          verificationLink: `${process.env.FRONTEND_URL}/verify-email?token=TODO`,
+          verificationLink: `${process.env['FRONTEND_URL']}/verify-email?token=TODO`,
         },
       })
       .catch((error) => {

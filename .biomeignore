@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Next.js generated files
+.next/
+out/
+
+# Build outputs
+dist/
+build/
+
+# Coverage reports
+coverage/
+
+# Deployment
+.vercel/
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.*
+
+# Lock files
+bun.lock
+package-lock.json
+yarn.lock

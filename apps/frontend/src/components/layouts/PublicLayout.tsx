@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import { Scissors } from 'lucide-react';
-import { DevAuthTools } from '@/components/common/DevAuthTools';
 
 export function PublicLayout() {
   return (
@@ -17,8 +16,6 @@ export function PublicLayout() {
       <main className="flex min-h-screen items-center justify-center pt-16">
         <Outlet />
       </main>
-
-      <DevAuthTools />
     </div>
   );
 }

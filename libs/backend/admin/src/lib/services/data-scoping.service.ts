@@ -1,4 +1,5 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
+import { UserWithPermissions } from '@ftry/shared/types';
 
 /**
  * Data Scoping Service
@@ -10,6 +11,23 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
  * - :all suffix = can access across all tenants (super admin)
  * - :own suffix = can access only within own tenant (tenant admin)
  */
+
+// Type for Prisma query objects
+interface PrismaQueryBase {
+  where?: Record<string, unknown>;
+  include?: Record<string, unknown>;
+  select?: Record<string, unknown>;
+  orderBy?: Record<string, unknown> | Array<Record<string, unknown>>;
+  take?: number;
+  skip?: number;
+}
+
+// Type for entities with tenantId
+interface EntityWithTenant {
+  tenantId: string | null;
+  [key: string]: unknown;
+}
+
 @Injectable()
 export class DataScopingService {
   /**
@@ -20,7 +38,7 @@ export class DataScopingService {
    * @param resource - Resource type (e.g., 'users', 'tenants', 'roles')
    * @returns Modified query with appropriate where clauses
    */
-  scopeQuery(user: any, query: any, resource: string): any {
+  scopeQuery<T extends PrismaQueryBase>(user: UserWithPermissions, query: T, resource: string): T {
     // If user has "all" permission, no scoping needed
     if (user.permissions?.includes(`${resource}:read:all`)) {
       return query; // Return unmodified query
@@ -49,7 +67,11 @@ export class DataScopingService {
    * @param permission - Required permission (e.g., 'users:update:all')
    * @returns boolean indicating if access is allowed
    */
-  canAccessEntity(user: any, entity: any, permission: string): boolean {
+  canAccessEntity(
+    user: UserWithPermissions,
+    entity: EntityWithTenant,
+    permission: string,
+  ): boolean {
     if (!entity) {
       return false;
     }
@@ -82,7 +104,7 @@ export class DataScopingService {
    * @throws ForbiddenException if access is denied
    */
   validateTenantAccess(
-    user: any,
+    user: UserWithPermissions,
     targetTenantId: string | null,
     operation: 'create' | 'update' | 'delete',
     resource: string,
@@ -113,7 +135,7 @@ export class DataScopingService {
    * - Super admin: all roles
    * - Tenant admin: system roles + tenant-specific roles
    */
-  getRoleScope(user: any): any {
+  getRoleScope(user: UserWithPermissions): Record<string, unknown> {
     // Super admin sees all roles
     if (user.tenantId === null) {
       return {}; // No filter

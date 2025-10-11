@@ -1,26 +1,17 @@
 import { RouterProvider } from 'react-router-dom';
 import { useEffect } from 'react';
 import { router } from '@/routes';
-import { useUIStore, useAuthStore } from '@/store';
+import { useAuthStore } from '@/store';
 import { authApi } from '@/lib/auth';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { prefetchCsrfToken } from '@/lib/api';
 import { QueryProvider } from '@/lib/api';
 import { Toaster } from 'sonner';
+import { useThemeEffect } from '@/hooks';
 
 export function App() {
-  const { setTheme } = useUIStore();
-
-  // Initialize theme on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('ui-storage');
-    if (savedTheme) {
-      const { state } = JSON.parse(savedTheme);
-      if (state?.theme) {
-        setTheme(state.theme);
-      }
-    }
-  }, [setTheme]);
+  // Apply theme changes to DOM (side effect in React hook, not store)
+  useThemeEffect();
 
   // Initialize and validate auth state on mount
   useEffect(() => {

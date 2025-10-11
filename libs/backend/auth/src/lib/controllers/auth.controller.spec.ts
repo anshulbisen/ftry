@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ExecutionContext } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
 import { LocalAuthGuard, JwtAuthGuard } from '../guards';
@@ -15,18 +15,6 @@ import type {
 } from '@ftry/shared/types';
 import { AUTH_MESSAGES } from '@ftry/shared/constants';
 
-// Test-specific type for mock requests
-type MockAuthRequest = Partial<Request> & {
-  user: UserWithPermissions;
-  headers: Record<string, string | string[] | undefined>;
-  ip?: string;
-  socket?: { remoteAddress?: string };
-  get(name: 'set-cookie'): string[] | undefined;
-  get(name: string): string | undefined;
-  header(name: 'set-cookie'): string[] | undefined;
-  header(name: string): string | undefined;
-};
-
 // Helper function to create mock request with proper type signatures
 function createMockRequest(
   user: UserWithPermissions,
@@ -37,7 +25,7 @@ function createMockRequest(
     connection?: { remoteAddress?: string };
     socket?: { remoteAddress?: string };
   } = {},
-): MockAuthRequest {
+): any {
   const userAgent =
     options.userAgent !== undefined
       ? options.userAgent
@@ -47,25 +35,24 @@ function createMockRequest(
   return {
     user,
     headers,
-    ip: options.ip,
-    connection: options.connection as any,
-    socket: options.socket as any,
-    get(name: string): string | string[] | undefined {
-      if (name === 'user-agent') return userAgent || undefined;
-      if (name === 'set-cookie') return undefined;
-      return headers[name];
-    },
-    header(name: string): string | string[] | undefined {
-      if (name === 'user-agent') return userAgent || undefined;
-      if (name === 'set-cookie') return undefined;
-      return headers[name];
-    },
+    ip: options.ip || '192.168.1.1',
+    connection: options.connection,
+    socket: options.socket,
+  };
+}
+
+// Helper function to create mock response with cookie methods
+function createMockResponse(): Partial<Response> {
+  return {
+    cookie: jest.fn(),
+    clearCookie: jest.fn(),
   };
 }
 
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: jest.Mocked<AuthService>;
+  let mockResponse: Partial<Response>;
 
   // Test fixtures
   const mockUserId = 'user-789';
@@ -163,7 +150,7 @@ describe('AuthController', () => {
     expiresIn: 900,
   };
 
-  let mockAuthenticatedRequest: MockAuthRequest;
+  let mockAuthenticatedRequest: any;
 
   beforeEach(async () => {
     const mockAuthService = {
@@ -209,8 +196,9 @@ describe('AuthController', () => {
     controller = module.get<AuthController>(AuthController);
     authService = module.get(AuthService);
 
-    // Initialize mock request using helper
+    // Initialize mock request and response using helpers
     mockAuthenticatedRequest = createMockRequest(mockUserWithPermissions);
+    mockResponse = createMockResponse();
 
     jest.clearAllMocks();
   });
@@ -328,7 +316,11 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        const result = await controller.login(mockAuthenticatedRequest, loginDto);
+        const result = await controller.login(
+          mockAuthenticatedRequest as any,
+          mockResponse as Response,
+          loginDto,
+        );
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -343,11 +335,20 @@ describe('AuthController', () => {
             id: mockUserId,
             email: mockEmail,
           }),
-          accessToken: mockTokens.accessToken,
-          refreshToken: mockTokens.refreshToken,
           expiresIn: mockTokens.expiresIn,
         });
         expect(result.data?.user).not.toHaveProperty('password');
+        // Verify cookies are set
+        expect(mockResponse.cookie).toHaveBeenCalledWith(
+          'accessToken',
+          mockTokens.accessToken,
+          expect.any(Object),
+        );
+        expect(mockResponse.cookie).toHaveBeenCalledWith(
+          'refreshToken',
+          mockTokens.refreshToken,
+          expect.any(Object),
+        );
       });
 
       it('should extract deviceInfo from user-agent header', async () => {
@@ -358,7 +359,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(customRequest, loginDto);
+        await controller.login(customRequest as any, mockResponse as Response, loginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -377,7 +378,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithoutUserAgent, loginDto);
+        await controller.login(requestWithoutUserAgent as any, mockResponse as Response, loginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -395,7 +396,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithDifferentIP, loginDto);
+        await controller.login(requestWithDifferentIP as any, mockResponse as Response, loginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -414,7 +415,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithConnectionIP, loginDto);
+        await controller.login(requestWithConnectionIP as any, mockResponse as Response, loginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -432,7 +433,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithDangerousUA, loginDto);
+        await controller.login(requestWithDangerousUA as any, mockResponse as Response, loginDto);
 
         // Assert
         const call = authService.generateTokens.mock.calls[0];
@@ -451,7 +452,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithArrayUA, loginDto);
+        await controller.login(requestWithArrayUA as any, mockResponse as Response, loginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -468,18 +469,14 @@ describe('AuthController', () => {
         authService.generateTokens.mockRejectedValue(new Error('Token generation failed'));
 
         // Act & Assert
-        await expect(controller.login(mockAuthenticatedRequest, loginDto)).rejects.toThrow(
-          'Token generation failed',
-        );
+        await expect(
+          controller.login(mockAuthenticatedRequest as any, mockResponse as Response, loginDto),
+        ).rejects.toThrow('Token generation failed');
       });
     });
   });
 
   describe('refresh', () => {
-    const refreshTokenDto: RefreshTokenDto = {
-      refreshToken: 'valid-refresh-token',
-    };
-
     describe('success cases', () => {
       it('should successfully refresh access token', async () => {
         // Arrange
@@ -488,16 +485,30 @@ describe('AuthController', () => {
           refreshToken: 'new-refresh-token',
           expiresIn: 900,
         };
+        const mockRequest = {
+          cookies: { refreshToken: 'valid-refresh-token' },
+        } as Request;
         authService.refreshAccessToken.mockResolvedValue(newTokens);
 
         // Act
-        const result = await controller.refresh(refreshTokenDto);
+        const result = await controller.refresh(mockRequest, mockResponse as Response);
 
         // Assert
         expect(authService.refreshAccessToken).toHaveBeenCalledWith('valid-refresh-token');
         expect(result.success).toBe(true);
         expect(result.message).toBe(AUTH_MESSAGES.TOKEN_REFRESH_SUCCESS);
-        expect(result.data).toEqual(newTokens);
+        expect(result.data).toEqual({ expiresIn: 900 });
+        // Verify cookies are set
+        expect(mockResponse.cookie).toHaveBeenCalledWith(
+          'accessToken',
+          newTokens.accessToken,
+          expect.any(Object),
+        );
+        expect(mockResponse.cookie).toHaveBeenCalledWith(
+          'refreshToken',
+          newTokens.refreshToken,
+          expect.any(Object),
+        );
       });
 
       it('should return new access and refresh tokens', async () => {
@@ -507,45 +518,69 @@ describe('AuthController', () => {
           refreshToken: 'rotated-refresh-token',
           expiresIn: 900,
         };
+        const mockRequest = {
+          cookies: { refreshToken: 'valid-refresh-token' },
+        } as Request;
         authService.refreshAccessToken.mockResolvedValue(newTokens);
 
         // Act
-        const result = await controller.refresh(refreshTokenDto);
+        const result = await controller.refresh(mockRequest, mockResponse as Response);
 
         // Assert
-        expect(result.data?.accessToken).toBe('rotated-access-token');
-        expect(result.data?.refreshToken).toBe('rotated-refresh-token');
+        expect(result.data?.expiresIn).toBe(900);
+        // Tokens are in cookies, not in response body
+        expect(mockResponse.cookie).toHaveBeenCalledWith(
+          'accessToken',
+          'rotated-access-token',
+          expect.any(Object),
+        );
+        expect(mockResponse.cookie).toHaveBeenCalledWith(
+          'refreshToken',
+          'rotated-refresh-token',
+          expect.any(Object),
+        );
       });
     });
 
     describe('error cases', () => {
       it('should throw error for invalid refresh token', async () => {
         // Arrange
+        const mockRequest = {
+          cookies: { refreshToken: 'invalid-token' },
+        } as Request;
         authService.refreshAccessToken.mockRejectedValue(new Error('Invalid refresh token'));
 
         // Act & Assert
-        await expect(controller.refresh(refreshTokenDto)).rejects.toThrow('Invalid refresh token');
-        expect(authService.refreshAccessToken).toHaveBeenCalledWith('valid-refresh-token');
+        await expect(controller.refresh(mockRequest, mockResponse as Response)).rejects.toThrow(
+          'Invalid refresh token',
+        );
+        expect(authService.refreshAccessToken).toHaveBeenCalledWith('invalid-token');
       });
 
       it('should throw error for expired refresh token', async () => {
         // Arrange
+        const mockRequest = {
+          cookies: { refreshToken: 'expired-token' },
+        } as Request;
         authService.refreshAccessToken.mockRejectedValue(new Error('Refresh token has expired'));
 
         // Act & Assert
-        await expect(controller.refresh(refreshTokenDto)).rejects.toThrow(
+        await expect(controller.refresh(mockRequest, mockResponse as Response)).rejects.toThrow(
           'Refresh token has expired',
         );
       });
 
       it('should throw error for revoked refresh token', async () => {
         // Arrange
+        const mockRequest = {
+          cookies: { refreshToken: 'revoked-token' },
+        } as Request;
         authService.refreshAccessToken.mockRejectedValue(
           new Error('Refresh token has been revoked'),
         );
 
         // Act & Assert
-        await expect(controller.refresh(refreshTokenDto)).rejects.toThrow(
+        await expect(controller.refresh(mockRequest, mockResponse as Response)).rejects.toThrow(
           'Refresh token has been revoked',
         );
       });
@@ -553,17 +588,20 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    const refreshTokenDto: RefreshTokenDto = {
-      refreshToken: 'token-to-revoke',
-    };
-
     describe('success cases', () => {
       it('should successfully logout and revoke refresh token', async () => {
         // Arrange
+        const mockRequest = {
+          cookies: { refreshToken: 'token-to-revoke' },
+        } as Request;
         authService.revokeRefreshTokenForUser.mockResolvedValue(undefined);
 
         // Act
-        const result = await controller.logout(mockUserWithPermissions, refreshTokenDto);
+        const result = await controller.logout(
+          mockUserWithPermissions,
+          mockRequest,
+          mockResponse as Response,
+        );
 
         // Assert
         expect(authService.revokeRefreshTokenForUser).toHaveBeenCalledWith(
@@ -574,15 +612,21 @@ describe('AuthController', () => {
         expect(result.success).toBe(true);
         expect(result.message).toBe(AUTH_MESSAGES.LOGOUT_SUCCESS);
         expect(result.data).toBeNull();
+        // Verify cookies are cleared
+        expect(mockResponse.clearCookie).toHaveBeenCalledWith('accessToken');
+        expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken');
       });
 
       it('should verify token ownership before revoking', async () => {
         // Arrange
+        const mockRequest = {
+          cookies: { refreshToken: 'token-to-revoke' },
+        } as Request;
         authService.revokeRefreshTokenForUser.mockResolvedValue(undefined);
         const differentUser = { ...mockUserWithPermissions, id: 'different-user-id' };
 
         // Act
-        await controller.logout(differentUser, refreshTokenDto);
+        await controller.logout(differentUser, mockRequest, mockResponse as Response);
 
         // Assert
         expect(authService.revokeRefreshTokenForUser).toHaveBeenCalledWith(
@@ -594,34 +638,48 @@ describe('AuthController', () => {
     });
 
     describe('error cases', () => {
-      it('should throw error when token does not exist', async () => {
+      it('should continue with logout even if token revocation fails', async () => {
         // Arrange
+        const mockRequest = {
+          cookies: { refreshToken: 'token-to-revoke' },
+        } as Request;
         authService.revokeRefreshTokenForUser.mockRejectedValue(new Error('Invalid refresh token'));
 
-        // Act & Assert
-        await expect(controller.logout(mockUserWithPermissions, refreshTokenDto)).rejects.toThrow(
-          'Invalid refresh token',
+        // Act
+        const result = await controller.logout(
+          mockUserWithPermissions,
+          mockRequest,
+          mockResponse as Response,
         );
+
+        // Assert
+        expect(result.success).toBe(true);
+        expect(result.message).toBe(AUTH_MESSAGES.LOGOUT_SUCCESS);
+        // Cookies should still be cleared even if revocation fails
+        expect(mockResponse.clearCookie).toHaveBeenCalledWith('accessToken');
+        expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken');
       });
 
-      it('should throw error when token does not belong to user', async () => {
+      it('should handle missing refresh token gracefully', async () => {
         // Arrange
-        authService.revokeRefreshTokenForUser.mockRejectedValue(new Error('Invalid refresh token'));
+        const mockRequest = {
+          cookies: {},
+        } as Request;
 
-        // Act & Assert
-        await expect(controller.logout(mockUserWithPermissions, refreshTokenDto)).rejects.toThrow(
-          'Invalid refresh token',
+        // Act
+        const result = await controller.logout(
+          mockUserWithPermissions,
+          mockRequest,
+          mockResponse as Response,
         );
-      });
 
-      it('should handle service errors during logout', async () => {
-        // Arrange
-        authService.revokeRefreshTokenForUser.mockRejectedValue(new Error('Database error'));
-
-        // Act & Assert
-        await expect(controller.logout(mockUserWithPermissions, refreshTokenDto)).rejects.toThrow(
-          'Database error',
-        );
+        // Assert
+        expect(authService.revokeRefreshTokenForUser).not.toHaveBeenCalled();
+        expect(result.success).toBe(true);
+        expect(result.message).toBe(AUTH_MESSAGES.LOGOUT_SUCCESS);
+        // Cookies should still be cleared
+        expect(mockResponse.clearCookie).toHaveBeenCalledWith('accessToken');
+        expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken');
       });
     });
   });
@@ -680,7 +738,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithoutUA, {} as LoginDto);
+        await controller.login(requestWithoutUA as any, mockResponse as Response, {} as LoginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -701,7 +759,11 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithDangerousUA as any, {} as LoginDto);
+        await controller.login(
+          requestWithDangerousUA as any,
+          mockResponse as Response,
+          {} as LoginDto,
+        );
 
         // Assert
         const deviceInfo = authService.generateTokens.mock.calls[0]?.[1];
@@ -723,7 +785,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithLongUA as any, {} as LoginDto);
+        await controller.login(requestWithLongUA as any, mockResponse as Response, {} as LoginDto);
 
         // Assert
         const deviceInfo = authService.generateTokens.mock.calls[0]?.[1];
@@ -743,7 +805,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithValidUA as any, {} as LoginDto);
+        await controller.login(requestWithValidUA as any, mockResponse as Response, {} as LoginDto);
 
         // Assert
         const deviceInfo = authService.generateTokens.mock.calls[0]?.[1];
@@ -763,7 +825,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithIP as any, {} as LoginDto);
+        await controller.login(requestWithIP as any, mockResponse as Response, {} as LoginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -783,7 +845,11 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithConnectionIP as any, {} as LoginDto);
+        await controller.login(
+          requestWithConnectionIP as any,
+          mockResponse as Response,
+          {} as LoginDto,
+        );
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -803,7 +869,7 @@ describe('AuthController', () => {
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithoutIP as any, {} as LoginDto);
+        await controller.login(requestWithoutIP as any, mockResponse as Response, {} as LoginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(

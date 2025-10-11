@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Calendar,
@@ -10,12 +10,17 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LogOut,
   Bell,
   User,
   Shield,
   UserCog,
   Building,
+  Key,
+  Sun,
+  Moon,
+  Monitor,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,6 +32,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { useUIStore, useAuthStore } from '@/store';
 import { ROUTES } from '@/constants/routes';
@@ -34,7 +43,7 @@ import { type NavItem } from '@/types';
 import { SidebarNavItem } from './SidebarNavItem';
 import { SidebarSection } from './SidebarSection';
 
-const getNavigationItems = (isSuperAdmin: boolean, isTenantAdmin: boolean): NavItem[] => {
+const getNavigationItems = (hasAdminAccess: boolean): NavItem[] => {
   const baseItems: NavItem[] = [
     {
       title: 'Dashboard',
@@ -73,31 +82,36 @@ const getNavigationItems = (isSuperAdmin: boolean, isTenantAdmin: boolean): NavI
     },
   ];
 
-  // Add admin section for super admins and tenant admins
-  if (isSuperAdmin || isTenantAdmin) {
-    baseItems.push(
-      {
-        title: 'Admin',
-        href: '',
-        icon: Shield,
-        isSection: true,
-      },
-      {
-        title: 'Users',
-        href: ROUTES.APP.ADMIN_USERS,
-        icon: UserCog,
-      },
-      {
-        title: 'Tenants',
-        href: ROUTES.APP.ADMIN_TENANTS,
-        icon: Building,
-      },
-      {
-        title: 'Roles',
-        href: ROUTES.APP.ADMIN_ROLES,
-        icon: Shield,
-      },
-    );
+  // Add admin section for users with admin permissions
+  if (hasAdminAccess) {
+    baseItems.push({
+      title: 'Admin',
+      href: '',
+      icon: Shield,
+      isSection: true,
+      children: [
+        {
+          title: 'Users',
+          href: ROUTES.APP.ADMIN_USERS,
+          icon: UserCog,
+        },
+        {
+          title: 'Tenants',
+          href: ROUTES.APP.ADMIN_TENANTS,
+          icon: Building,
+        },
+        {
+          title: 'Roles',
+          href: ROUTES.APP.ADMIN_ROLES,
+          icon: Shield,
+        },
+        {
+          title: 'Permissions',
+          href: ROUTES.APP.ADMIN_PERMISSIONS,
+          icon: Key,
+        },
+      ],
+    });
   }
 
   baseItems.push({
@@ -116,14 +130,47 @@ interface SidebarProps {
 export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { sidebarCollapsed, sidebarOpen, toggleSidebarCollapsed, setSidebarOpen } = useUIStore();
-  const { user, logout, isSuperAdmin, isTenantAdmin } = useAuthStore();
+  const { sidebarCollapsed, sidebarOpen, toggleSidebarCollapsed, setSidebarOpen, theme, setTheme } =
+    useUIStore();
+  const { user, logout, hasAnyPermission } = useAuthStore();
 
-  // Memoize navigation items based on user roles
-  const navigationItems = useMemo(
-    () => getNavigationItems(isSuperAdmin(), isTenantAdmin()),
-    [isSuperAdmin, isTenantAdmin],
-  );
+  // State for collapsed sections
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+
+  // Memoize navigation items based on user permissions
+  const navigationItems = useMemo(() => {
+    // Check if user has any admin permissions
+    const hasAdminAccess = hasAnyPermission([
+      'users:read:all',
+      'users:read:own',
+      'tenants:read:all',
+      'tenants:read:own',
+      'roles:read:all',
+      'roles:read:own',
+      'permissions:read:all',
+    ]);
+
+    console.log('=== Sidebar Navigation Debug ===');
+    console.log('User:', user);
+    console.log('Has admin access:', hasAdminAccess);
+    console.log('User permissions:', user?.permissions);
+    const items = getNavigationItems(hasAdminAccess);
+    console.log('Navigation items count:', items.length);
+    console.log(
+      'Has Admin section:',
+      items.some((item) => item.title === 'Admin'),
+    );
+    console.log('================================');
+    return items;
+  }, [hasAnyPermission, user]);
+
+  // Toggle section collapse
+  const toggleSection = useCallback((sectionTitle: string) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [sectionTitle]: !prev[sectionTitle],
+    }));
+  }, []);
 
   // Memoize isActive check
   const isActive = useCallback(
@@ -168,7 +215,7 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
         {(!sidebarCollapsed || isMobile) && (
           <div className="flex items-center gap-2">
             <Scissors className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">FTRY</span>
+            <span className="text-lg font-semibold text-foreground">FTRY</span>
           </div>
         )}
         {/* Only show collapse button on desktop */}
@@ -193,7 +240,63 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
         {navigationItems.map((item, index) => {
           const active = isActive(item.href);
 
-          // Render section header
+          // Render section header with collapsible children
+          if (item.isSection && item.children) {
+            const isSectionCollapsed = collapsedSections[item.title] ?? false;
+            const hasActiveChild = item.children.some((child) => isActive(child.href));
+
+            return (
+              <div key={`section-${index}`} className="space-y-1">
+                {/* Section Header - Clickable */}
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'w-full justify-between px-3 py-2 text-sm font-semibold',
+                    sidebarCollapsed && 'justify-center',
+                    hasActiveChild && 'bg-accent/50',
+                  )}
+                  onClick={() => toggleSection(item.title)}
+                >
+                  <div className="flex items-center gap-2">
+                    {item.icon && <item.icon className="h-4 w-4 text-muted-foreground" />}
+                    {!sidebarCollapsed && (
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                        {item.title}
+                      </span>
+                    )}
+                  </div>
+                  {!sidebarCollapsed && (
+                    <ChevronDown
+                      className={cn(
+                        'h-4 w-4 text-muted-foreground transition-transform',
+                        isSectionCollapsed && '-rotate-90',
+                      )}
+                    />
+                  )}
+                </Button>
+
+                {/* Section Children - Collapsible */}
+                {!sidebarCollapsed && !isSectionCollapsed && (
+                  <div className="ml-2 space-y-1 border-l border-border pl-2">
+                    {item.children.map((child) => (
+                      <SidebarNavItem
+                        key={child.href}
+                        title={child.title}
+                        href={child.href}
+                        icon={child.icon as LucideIcon | undefined}
+                        isActive={isActive(child.href)}
+                        isCollapsed={false}
+                        isMobile={isMobile}
+                        onClick={handleNavClick}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Render regular section header (without children)
           if (item.isSection) {
             return (
               <SidebarSection
@@ -234,7 +337,7 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
               )}
             >
               <Bell className="h-5 w-5 shrink-0" />
-              {!sidebarCollapsed && <span className="ml-3">Notifications</span>}
+              {!sidebarCollapsed && <span className="ml-3 text-foreground">Notifications</span>}
               {/* Notification badge */}
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
             </Button>
@@ -262,7 +365,7 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
               </div>
               {!sidebarCollapsed && (
                 <div className="ml-3 flex-1 overflow-hidden text-left">
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {user?.firstName} {user?.lastName || user?.email || 'User'}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">{user?.email || ''}</p>
@@ -273,7 +376,7 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
           <DropdownMenuContent align="end" side="top" className="w-56 mb-2">
             <DropdownMenuLabel>
               <div>
-                <p className="font-medium">
+                <p className="font-medium text-foreground">
                   {user?.firstName} {user?.lastName || user?.email || 'User'}
                 </p>
                 <p className="text-xs font-normal text-muted-foreground">{user?.email || ''}</p>
@@ -288,6 +391,30 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                {theme === 'light' && <Sun className="mr-2 h-4 w-4" />}
+                {theme === 'dark' && <Moon className="mr-2 h-4 w-4" />}
+                {theme === 'system' && <Monitor className="mr-2 h-4 w-4" />}
+                Theme
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => setTheme('light')}>
+                    <Sun className="mr-2 h-4 w-4" />
+                    Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme('dark')}>
+                    <Moon className="mr-2 h-4 w-4" />
+                    Dark
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme('system')}>
+                    <Monitor className="mr-2 h-4 w-4" />
+                    System
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}

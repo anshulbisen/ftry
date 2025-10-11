@@ -18,8 +18,6 @@ TOOLING_CONTEXT = """
 - Dev servers: `nx serve [frontend|backend]`
 - Quality gate: `bun run check-all` (before commits)
 - Database: `bunx prisma [generate|migrate|studio]`
-- Workflows: `/implement-feature`, `/test-first`, `/commit`
-- Review: `/full-review`, `/quick-fix`, `/security-audit`
 
 See CLAUDE.md for complete standards and workflows.
 """

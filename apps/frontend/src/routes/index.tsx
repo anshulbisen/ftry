@@ -46,17 +46,12 @@ const SettingsPage = lazy(() =>
   import('@/pages/app/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
 
-// Admin pages - Using admin components
-const UserManagement = lazy(() =>
-  import('@/components/admin/users/UserManagement').then((m) => ({ default: m.UserManagement })),
-);
-const TenantManagement = lazy(() =>
-  import('@/components/admin/tenants/TenantManagement').then((m) => ({
-    default: m.TenantManagement,
-  })),
-);
-const RoleManagement = lazy(() =>
-  import('@/components/admin/roles/RoleManagement').then((m) => ({ default: m.RoleManagement })),
+// Admin pages - Using ResourceManager pattern
+const Users = lazy(() => import('@/pages/admin/Users').then((m) => ({ default: m.Users })));
+const Tenants = lazy(() => import('@/pages/admin/Tenants').then((m) => ({ default: m.Tenants })));
+const Roles = lazy(() => import('@/pages/admin/Roles').then((m) => ({ default: m.Roles })));
+const Permissions = lazy(() =>
+  import('@/pages/admin/Permissions').then((m) => ({ default: m.Permissions })),
 );
 
 /**
@@ -178,7 +173,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGate permissions={['users:read:all', 'users:read:own']}>
             <Suspense fallback={<RouteLoadingFallback />}>
-              <UserManagement />
+              <Users />
             </Suspense>
           </PermissionGate>
         ),
@@ -188,7 +183,7 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGate permissions={['tenants:read:all', 'tenants:read:own']}>
             <Suspense fallback={<RouteLoadingFallback />}>
-              <TenantManagement />
+              <Tenants />
             </Suspense>
           </PermissionGate>
         ),
@@ -198,7 +193,17 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGate permissions={['roles:read:all', 'roles:read:own']}>
             <Suspense fallback={<RouteLoadingFallback />}>
-              <RoleManagement />
+              <Roles />
+            </Suspense>
+          </PermissionGate>
+        ),
+      },
+      {
+        path: ROUTES.APP.ADMIN_PERMISSIONS,
+        element: (
+          <PermissionGate permissions={['permissions:read:all']}>
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <Permissions />
             </Suspense>
           </PermissionGate>
         ),

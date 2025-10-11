@@ -666,6 +666,171 @@ echo "- Implementing refresh token rotation" >> docs/context/auth-refactor.md
 
 ---
 
+## 11. Admin Resource Creation Workflow
+
+### Configuration-Based Admin CRUD (New Pattern)
+
+**Context**: As of 2025-10-11, admin interfaces use configuration-based architecture with 93% code reduction.
+
+**Detailed Guide**: See `/docs/ADMIN_QUICK_START.md`
+
+1. **Create TanStack Query hooks** (5 min)
+
+   ```typescript
+   // apps/frontend/src/hooks/useAdminData.ts
+   export const useAppointments = (filters?: ResourceFilters) => {
+     return useQuery({
+       queryKey: ['admin', 'appointments', filters],
+       queryFn: () => adminApi.appointments.getAll(filters),
+       staleTime: 5 * 60 * 1000,
+     });
+   };
+
+   export const useCreateAppointment = () => {
+     const queryClient = useQueryClient();
+     return useMutation({
+       mutationFn: (data: CreateAppointmentDto) => adminApi.appointments.create(data),
+       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'appointments'] }),
+     });
+   };
+
+   // Similar for useUpdate, useDelete
+   ```
+
+2. **Create form component** (10 min)
+
+   ```typescript
+   // apps/frontend/src/components/admin/appointments/AppointmentForm.tsx
+   import type { FormProps } from '@/types/admin';
+
+   export const AppointmentForm: React.FC<FormProps<Appointment, CreateDto>> = ({
+     entity,
+     open,
+     onClose,
+     onSuccess,
+   }) => {
+     // Form implementation with react-hook-form + zod
+   };
+   ```
+
+3. **Create resource configuration** (10 min)
+
+   ```typescript
+   // apps/frontend/src/config/admin/appointments.config.tsx
+   import { createColumnHelper } from '@tanstack/react-table';
+   import type { ResourceConfig, TableColumn } from '@/types/admin';
+
+   const columnHelper = createColumnHelper<Appointment>();
+
+   export const appointmentConfig: ResourceConfig<Appointment, CreateDto, UpdateDto> = {
+     metadata: { singular: 'Appointment', plural: 'Appointments', icon: Calendar },
+     permissions: {
+       create: ['appointments:create:all'],
+       read: ['appointments:read:all'],
+       update: ['appointments:update:all'],
+       delete: ['appointments:delete:all'],
+     },
+     hooks: {
+       useList: (filters) => useAppointments(filters),
+       useCreate: () => useCreateAppointment(),
+       useUpdate: () => useUpdateAppointment(),
+       useDelete: () => useDeleteAppointment(),
+     },
+     table: {
+       columns: [
+         {
+           ...columnHelper.accessor('clientName', {
+             id: 'clientName',
+             header: 'Client',
+             enableSorting: true,
+           }),
+           sortable: true,
+         } as TableColumn<Appointment>,
+       ],
+       defaultSort: { key: 'clientName', direction: 'asc' },
+     },
+     form: { component: AppointmentForm },
+     search: { enabled: true, placeholder: 'Search appointments...' },
+   };
+   ```
+
+4. **Create page component** (2 min)
+
+   ```typescript
+   // apps/frontend/src/pages/admin/AppointmentsPage.tsx
+   import { ResourceManager } from '@/components/admin/common/ResourceManager';
+   import { appointmentConfig } from '@/config/admin/appointments.config';
+
+   export const AppointmentsPage = () => <ResourceManager config={appointmentConfig} />;
+   ```
+
+5. **Add to routing** (3 min)
+
+   ```typescript
+   // apps/frontend/src/routes/admin.tsx
+   {
+     path: 'appointments',
+     element: <AppointmentsPage />,
+   }
+   ```
+
+6. **Test manually** (5 min)
+   ```bash
+   nx serve frontend
+   # Navigate to /admin/appointments
+   # Test create, edit, delete, search, sort
+   ```
+
+**Timeline**: 30 minutes total
+
+**Benefits**:
+
+- 93% less code than legacy approach
+- Type-safe with full IntelliSense
+- Consistent UX automatically
+- Single source of truth
+
+**Common Patterns**:
+
+```typescript
+// Permission-based column visibility
+{
+  ...columnHelper.display({
+    id: 'tenant',
+    header: 'Tenant',
+    cell: ({ row }) => row.original.tenant?.name,
+  }),
+  visibleIf: (permissions) => permissions.includes('users:read:all'),
+} as TableColumn<User>
+
+// Custom action
+customActions: [
+  {
+    id: 'cancel',
+    label: 'Cancel',
+    icon: XCircle,
+    location: ['row'],
+    permissions: ['appointments:cancel:all'],
+    handler: async (appointment, { useCancelAppointment }) => {
+      await useCancelAppointment().mutateAsync(appointment.id);
+    },
+    shouldShow: (appointment) => appointment.status === 'confirmed',
+  },
+]
+
+// Delete validation
+deleteValidation: {
+  canDelete: (appointment) => ({
+    allowed: appointment.status !== 'completed',
+    reason: appointment.status === 'completed'
+      ? 'Cannot delete completed appointments'
+      : undefined,
+  }),
+}
+```
+
+---
+
 ## Quick Reference
 
 | Workflow               | Command                             | Time   | Complexity |
@@ -680,8 +845,11 @@ echo "- Implementing refresh token rotation" >> docs/context/auth-refactor.md
 | Security Audit         | `/security-audit`                   | 2-4h   | High       |
 | Refactoring            | `/refactor-code`                    | 3-6h   | High       |
 | Database Migration     | Manual (schema → migrate → test)    | 30-60m | Medium     |
+| Admin Resource         | Manual (hooks → form → config)      | 30m    | Low        |
 
 ---
 
-**Last Updated**: 2025-10-08
+**Last Updated**: 2025-10-11
 **For More Details**: See individual slash command documentation in `.claude/commands/`
+
+**Admin CRUD**: See `/docs/ADMIN_QUICK_START.md` for detailed step-by-step guide

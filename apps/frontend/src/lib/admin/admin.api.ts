@@ -21,9 +21,8 @@ export interface RoleWithStats extends Role {
   permissionCount: number;
 }
 
-export interface UserListItem extends SafeUser {
-  // Already includes role and tenant from SafeUser
-}
+// Type alias for user list items - includes all SafeUser properties
+export type UserListItem = SafeUser;
 
 /**
  * Tenant API
@@ -33,39 +32,34 @@ export const tenantApi = {
    * Get all tenants (scoped by permissions)
    */
   getAll: async (filters?: Record<string, unknown>) => {
-    const response = await apiClient.get<ApiResponse<TenantWithStats[]>>(`${ADMIN_BASE}/tenants`, {
+    const response = await apiClient.get<TenantWithStats[]>(`${ADMIN_BASE}/tenants`, {
       params: filters,
     });
-    return response.data.data;
+    return response.data;
   },
 
   /**
    * Get tenant by ID
    */
   getById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<TenantWithStats>>(
-      `${ADMIN_BASE}/tenants/${id}`,
-    );
-    return response.data.data;
+    const response = await apiClient.get<TenantWithStats>(`${ADMIN_BASE}/tenants/${id}`);
+    return response.data;
   },
 
   /**
    * Create new tenant (super admin only)
    */
   create: async (data: Partial<Tenant>) => {
-    const response = await apiClient.post<ApiResponse<Tenant>>(`${ADMIN_BASE}/tenants`, data);
-    return response.data.data;
+    const response = await apiClient.post<Tenant>(`${ADMIN_BASE}/tenants`, data);
+    return response.data;
   },
 
   /**
    * Update tenant
    */
   update: async (id: string, data: Partial<Tenant>) => {
-    const response = await apiClient.patch<ApiResponse<Tenant>>(
-      `${ADMIN_BASE}/tenants/${id}`,
-      data,
-    );
-    return response.data.data;
+    const response = await apiClient.patch<Tenant>(`${ADMIN_BASE}/tenants/${id}`, data);
+    return response.data;
   },
 
   /**
@@ -79,20 +73,16 @@ export const tenantApi = {
    * Suspend tenant (super admin only)
    */
   suspend: async (id: string) => {
-    const response = await apiClient.post<ApiResponse<Tenant>>(
-      `${ADMIN_BASE}/tenants/${id}/suspend`,
-    );
-    return response.data.data;
+    const response = await apiClient.post<Tenant>(`${ADMIN_BASE}/tenants/${id}/suspend`);
+    return response.data;
   },
 
   /**
    * Activate tenant (super admin only)
    */
   activate: async (id: string) => {
-    const response = await apiClient.post<ApiResponse<Tenant>>(
-      `${ADMIN_BASE}/tenants/${id}/activate`,
-    );
-    return response.data.data;
+    const response = await apiClient.post<Tenant>(`${ADMIN_BASE}/tenants/${id}/activate`);
+    return response.data;
   },
 };
 
@@ -104,18 +94,19 @@ export const userApi = {
    * Get all users (scoped by permissions)
    */
   getAll: async (filters?: Record<string, unknown>) => {
-    const response = await apiClient.get<ApiResponse<UserListItem[]>>(`${ADMIN_BASE}/users`, {
+    const response = await apiClient.get<UserListItem[]>(`${ADMIN_BASE}/users`, {
       params: filters,
     });
-    return response.data.data;
+    // Admin endpoints return raw data (not wrapped in ApiResponse)
+    return response.data;
   },
 
   /**
    * Get user by ID
    */
   getById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<SafeUser>>(`${ADMIN_BASE}/users/${id}`);
-    return response.data.data;
+    const response = await apiClient.get<SafeUser>(`${ADMIN_BASE}/users/${id}`);
+    return response.data;
   },
 
   /**
@@ -130,8 +121,8 @@ export const userApi = {
     tenantId?: string;
     roleId: string;
   }) => {
-    const response = await apiClient.post<ApiResponse<SafeUser>>(`${ADMIN_BASE}/users`, data);
-    return response.data.data;
+    const response = await apiClient.post<SafeUser>(`${ADMIN_BASE}/users`, data);
+    return response.data;
   },
 
   /**
@@ -147,11 +138,8 @@ export const userApi = {
       status?: string;
     },
   ) => {
-    const response = await apiClient.patch<ApiResponse<SafeUser>>(
-      `${ADMIN_BASE}/users/${id}`,
-      data,
-    );
-    return response.data.data;
+    const response = await apiClient.patch<SafeUser>(`${ADMIN_BASE}/users/${id}`, data);
+    return response.data;
   },
 
   /**
@@ -165,10 +153,10 @@ export const userApi = {
    * Impersonate user (admin feature)
    */
   impersonate: async (id: string) => {
-    const response = await apiClient.post<ApiResponse<{ accessToken: string }>>(
+    const response = await apiClient.post<{ accessToken: string }>(
       `${ADMIN_BASE}/users/${id}/impersonate`,
     );
-    return response.data.data;
+    return response.data;
   },
 };
 
@@ -180,18 +168,18 @@ export const roleApi = {
    * Get all roles (scoped by permissions)
    */
   getAll: async (filters?: Record<string, unknown>) => {
-    const response = await apiClient.get<ApiResponse<RoleWithStats[]>>(`${ADMIN_BASE}/roles`, {
+    const response = await apiClient.get<RoleWithStats[]>(`${ADMIN_BASE}/roles`, {
       params: filters,
     });
-    return response.data.data;
+    return response.data;
   },
 
   /**
    * Get role by ID
    */
   getById: async (id: string) => {
-    const response = await apiClient.get<ApiResponse<Role>>(`${ADMIN_BASE}/roles/${id}`);
-    return response.data.data;
+    const response = await apiClient.get<Role>(`${ADMIN_BASE}/roles/${id}`);
+    return response.data;
   },
 
   /**
@@ -204,8 +192,8 @@ export const roleApi = {
     type?: string;
     tenantId?: string;
   }) => {
-    const response = await apiClient.post<ApiResponse<Role>>(`${ADMIN_BASE}/roles`, data);
-    return response.data.data;
+    const response = await apiClient.post<Role>(`${ADMIN_BASE}/roles`, data);
+    return response.data;
   },
 
   /**
@@ -220,8 +208,8 @@ export const roleApi = {
       status?: string;
     },
   ) => {
-    const response = await apiClient.patch<ApiResponse<Role>>(`${ADMIN_BASE}/roles/${id}`, data);
-    return response.data.data;
+    const response = await apiClient.patch<Role>(`${ADMIN_BASE}/roles/${id}`, data);
+    return response.data;
   },
 
   /**
@@ -235,11 +223,10 @@ export const roleApi = {
    * Assign permissions to role
    */
   assignPermissions: async (id: string, permissions: string[]) => {
-    const response = await apiClient.post<ApiResponse<Role>>(
-      `${ADMIN_BASE}/roles/${id}/permissions`,
-      { permissions },
-    );
-    return response.data.data;
+    const response = await apiClient.post<Role>(`${ADMIN_BASE}/roles/${id}/permissions`, {
+      permissions,
+    });
+    return response.data;
   },
 };
 
@@ -251,38 +238,34 @@ export const permissionApi = {
    * Get all permissions
    */
   getAll: async () => {
-    const response = await apiClient.get<ApiResponse<Permission[]>>(`${ADMIN_BASE}/permissions`);
-    return response.data.data;
+    const response = await apiClient.get<Permission[]>(`${ADMIN_BASE}/permissions`);
+    return response.data;
   },
 
   /**
    * Get permissions by category
    */
   getByCategory: async (category: string) => {
-    const response = await apiClient.get<ApiResponse<Permission[]>>(`${ADMIN_BASE}/permissions`, {
+    const response = await apiClient.get<Permission[]>(`${ADMIN_BASE}/permissions`, {
       params: { category },
     });
-    return response.data.data;
+    return response.data;
   },
 
   /**
    * Get role permissions
    */
   getRolePermissions: async (roleId: string) => {
-    const response = await apiClient.get<ApiResponse<Permission[]>>(
-      `${ADMIN_BASE}/permissions/role/${roleId}`,
-    );
-    return response.data.data;
+    const response = await apiClient.get<Permission[]>(`${ADMIN_BASE}/permissions/role/${roleId}`);
+    return response.data;
   },
 
   /**
    * Get user permissions
    */
   getUserPermissions: async (userId: string) => {
-    const response = await apiClient.get<ApiResponse<Permission[]>>(
-      `${ADMIN_BASE}/permissions/user/${userId}`,
-    );
-    return response.data.data;
+    const response = await apiClient.get<Permission[]>(`${ADMIN_BASE}/permissions/user/${userId}`);
+    return response.data;
   },
 };
 

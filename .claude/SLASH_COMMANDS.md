@@ -18,9 +18,10 @@ Complete reference for all custom slash commands in the ftry project.
 | **Monitoring**    | `/setup-monitoring`                                               |
 | **Security**      | `/security-audit`                                                 |
 | **Documentation** | `/update-docs`, `/update-commands`                                |
+| **Maintenance**   | `/sync-repo`, `/update-agents`                                    |
 | **Agents**        | `/use-agent`, `/manage-agents`                                    |
 | **Git**           | `/commit`                                                         |
-| **Optimization**  | `/optimize-performance`, `/optimize-claude`, `/update-agents`     |
+| **Optimization**  | `/optimize-performance`, `/optimize-claude`                       |
 
 ---
 
@@ -547,6 +548,63 @@ Update all agent configurations to reflect current project state.
 
 ---
 
+## Repository Maintenance
+
+### `/sync-repo [scope]`
+
+Complete repository synchronization after feature implementation.
+
+**Usage:**
+
+```bash
+/sync-repo                      # Full synchronization
+/sync-repo authentication       # Specific feature scope
+/sync-repo frontend             # Frontend only
+/sync-repo --skip security      # Skip specific tasks
+/sync-repo --only docs,agents   # Run only specific tasks
+```
+
+**Execution Strategy:**
+
+**Phase 1: Quality Gate (Sequential - Must Pass)**
+
+```bash
+/check-all  # Format → Lint → TypeCheck → Test
+```
+
+**Phase 2: Parallel Maintenance (Independent Tasks)**
+
+- `/update-docs` - Documentation synchronization
+- `/update-agents` - Agent configuration sync
+- `/update-commands` - Command synchronization
+- `/full-review` - Comprehensive code review
+- `/security-audit` - Security vulnerability scan
+- `/fix-boundaries` - Module boundary validation
+
+**When to Run:**
+
+- ✅ After completing any feature
+- ✅ Before creating a pull request
+- ✅ After merging major changes
+- ✅ Before releases
+- ✅ Weekly maintenance
+
+**What Gets Updated:**
+
+1. Documentation (docs/, CLAUDE.md files)
+2. Agent configurations (.claude/agents/)
+3. Slash commands (.claude/commands/)
+4. Code quality (linting, formatting, types)
+5. Architecture (module boundaries, dependencies)
+6. Security (vulnerabilities, best practices)
+7. Performance (bottlenecks, optimizations)
+
+**Performance:** ~3-5 minutes (parallel execution, 80% faster than sequential)
+
+**Output:** Comprehensive report with action items prioritized by severity
+
+---
+
 ## Git Workflow
 
 ### `/commit [message] [--push]`
@@ -665,14 +723,10 @@ Orchestrate multiple agents for complex workflows.
 # 1. Implement feature with TDD
 /implement-feature "appointment-booking" fullstack
 
-# 2. Review and optimize
-/full-review
-/optimize-performance
+# 2. Complete repository synchronization
+/sync-repo
 
-# 3. Documentation
-/update-docs new appointment-booking
-
-# 4. Commit and push
+# 3. Commit and push
 /commit "feat(appointments): add booking feature" --push
 ```
 
@@ -829,7 +883,7 @@ Orchestrate multiple agents for complex workflows.
 
 ### Maintenance
 
-`/update-docs`, `/update-commands`, `/update-agents`
+`/sync-repo`, `/update-docs`, `/update-commands`, `/update-agents`
 
 ### Deployment Prep
 
@@ -861,7 +915,7 @@ Orchestrate multiple agents for complex workflows.
 
 ---
 
-**Last Updated**: 2025-10-08
-**Total Commands**: 23
+**Last Updated**: 2025-10-10
+**Total Commands**: 25
 **Total Agents**: 17
 **Status**: Active Development (Authentication Feature)

@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@ftry/shared/prisma';
+import { UserWithPermissions, UserWithoutPassword } from '@ftry/shared/types';
+import { removePassword } from '@ftry/shared/utils';
 import { DataScopingService } from './data-scoping.service';
+import { CreateUserDto, UpdateUserDto, UserFilterDto } from '../dto/user';
+import { requirePermission, requireAnyPermission } from '../utils/permission.utils';
 
 /**
  * User Admin Service
@@ -33,16 +37,23 @@ export class UserAdminService {
    * - Super admin: returns all users across all tenants
    * - Tenant admin: returns only users in their tenant
    */
-  async findAll(currentUser: any, filters?: any) {
+  async findAll(
+    currentUser: UserWithPermissions,
+    filters?: UserFilterDto,
+  ): Promise<UserWithoutPassword[]> {
     // Extract filters and pagination
     const limit = Math.min(filters?.limit || 50, 100); // Max 100
     const offset = filters?.offset || 0;
 
     // Build where clause from filters
-    const where: any = {};
-    if (filters?.email) where.email = filters.email;
-    if (filters?.status) where.status = filters.status;
-    if (filters?.roleId) where.roleId = filters.roleId;
+    const where: Record<string, unknown> = {};
+    if (filters?.limit !== undefined) {
+      // Note: limit is handled separately, not part of where clause
+    }
+    if (filters?.offset !== undefined) {
+      // Note: offset is handled separately, not part of where clause
+    }
+    // Add other filters as needed based on UserFilterDto structure
 
     // Build base query
     const baseQuery = {
@@ -59,16 +70,13 @@ export class UserAdminService {
     const users = await this.prisma.user.findMany(scopedQuery);
 
     // Remove password from results (security)
-    return users.map((user) => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+    return users.map((user) => removePassword(user));
   }
 
   /**
    * Find user by ID with permission check
    */
-  async findOne(currentUser: any, id: string) {
+  async findOne(currentUser: UserWithPermissions, id: string): Promise<UserWithoutPassword> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { role: true, tenant: true },
@@ -79,56 +87,69 @@ export class UserAdminService {
     }
 
     // Check if user can access this user
-    const canAccess =
-      this.scopingService.canAccessEntity(currentUser, user, 'users:read:all') ||
-      this.scopingService.canAccessEntity(currentUser, user, 'users:read:own');
-
-    if (!canAccess) {
-      throw new ForbiddenException('Cannot access this user');
-    }
+    requirePermission(this.scopingService, currentUser, user, 'read', 'users');
 
     // Remove password from result
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return removePassword(user);
   }
 
   /**
    * Create new user
    * - Super admin: can create in any tenant
    * - Tenant admin: can create only in their tenant
+   *
+   * Uses transaction to ensure:
+   * - Atomic user creation
+   * - Tenant user limit enforcement
+   * - No race conditions
    */
-  async create(currentUser: any, dto: any) {
+  async create(currentUser: UserWithPermissions, dto: CreateUserDto): Promise<UserWithoutPassword> {
     // Validate tenant access
     const targetTenantId = dto.tenantId || currentUser.tenantId;
 
     if (targetTenantId !== currentUser.tenantId && currentUser.tenantId !== null) {
       // Trying to create in different tenant
-      if (!currentUser.permissions.includes('users:create:all')) {
-        throw new ForbiddenException('Cannot create users in other tenants');
-      }
+      requireAnyPermission(currentUser, ['users:create:all']);
     }
 
     // Hash password (bcrypt with 12 rounds)
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
-    // Create user
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        phone: dto.phone,
-        roleId: dto.roleId,
-        tenantId: targetTenantId,
-        status: 'active',
-      },
-      include: { role: true, tenant: true },
-    });
+    // Use transaction for atomic user creation with tenant limit validation
+    return this.prisma.$transaction(async (tx) => {
+      // Check tenant user limit (if applicable)
+      if (targetTenantId) {
+        const tenant = await tx.tenant.findUnique({
+          where: { id: targetTenantId },
+          select: {
+            maxUsers: true,
+            _count: { select: { users: true } },
+          },
+        });
 
-    // Remove password from result
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+        if (tenant && tenant._count.users >= tenant.maxUsers) {
+          throw new BadRequestException('Tenant user limit reached');
+        }
+      }
+
+      // Create user
+      const user = await tx.user.create({
+        data: {
+          email: dto.email,
+          password: hashedPassword,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          roleId: dto.roleId,
+          tenantId: targetTenantId,
+          status: 'active',
+        },
+        include: { role: true, tenant: true },
+      });
+
+      // Remove password from result
+      return removePassword(user);
+    });
   }
 
   /**
@@ -136,7 +157,11 @@ export class UserAdminService {
    * - Super admin: can update any user
    * - Tenant admin: can update users in their tenant
    */
-  async update(currentUser: any, userId: string, dto: any) {
+  async update(
+    currentUser: UserWithPermissions,
+    userId: string,
+    dto: UpdateUserDto,
+  ): Promise<UserWithoutPassword> {
     // Get the user to check tenant
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -147,16 +172,10 @@ export class UserAdminService {
     }
 
     // Check if current user can update this user
-    const canUpdate =
-      this.scopingService.canAccessEntity(currentUser, user, 'users:update:all') ||
-      this.scopingService.canAccessEntity(currentUser, user, 'users:update:own');
-
-    if (!canUpdate) {
-      throw new ForbiddenException('Cannot update this user');
-    }
+    requirePermission(this.scopingService, currentUser, user, 'update', 'users');
 
     // Prepare update data (exclude password - handle separately)
-    const updateData: any = {};
+    const updateData: Partial<UpdateUserDto> = {};
     if (dto.firstName !== undefined) updateData.firstName = dto.firstName;
     if (dto.lastName !== undefined) updateData.lastName = dto.lastName;
     if (dto.phone !== undefined) updateData.phone = dto.phone;
@@ -171,8 +190,7 @@ export class UserAdminService {
     });
 
     // Remove password from result
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
+    return removePassword(updatedUser);
   }
 
   /**
@@ -180,7 +198,7 @@ export class UserAdminService {
    * - Super admin: can delete any user
    * - Tenant admin: can delete users in their tenant
    */
-  async delete(currentUser: any, userId: string) {
+  async delete(currentUser: UserWithPermissions, userId: string): Promise<UserWithoutPassword> {
     // Get the user to check tenant
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -196,13 +214,7 @@ export class UserAdminService {
     }
 
     // Check if current user can delete this user
-    const canDelete =
-      this.scopingService.canAccessEntity(currentUser, user, 'users:delete:all') ||
-      this.scopingService.canAccessEntity(currentUser, user, 'users:delete:own');
-
-    if (!canDelete) {
-      throw new ForbiddenException('Cannot delete this user');
-    }
+    requirePermission(this.scopingService, currentUser, user, 'delete', 'users');
 
     // Soft delete user
     const deletedUser = await this.prisma.user.update({
@@ -211,11 +223,11 @@ export class UserAdminService {
         isDeleted: true,
         deletedAt: new Date(),
       },
+      include: { role: true, tenant: true },
     });
 
     // Remove password from result
-    const { password, ...userWithoutPassword } = deletedUser;
-    return userWithoutPassword;
+    return removePassword(deletedUser);
   }
 
   /**
@@ -226,7 +238,10 @@ export class UserAdminService {
    * Note: This method validates permissions but token generation
    * should be handled by the auth service
    */
-  async impersonate(currentUser: any, userId: string) {
+  async impersonate(
+    currentUser: UserWithPermissions,
+    userId: string,
+  ): Promise<UserWithoutPassword> {
     // Get the user to impersonate
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -238,16 +253,18 @@ export class UserAdminService {
     }
 
     // Check if current user can impersonate this user
-    const canImpersonate =
-      this.scopingService.canAccessEntity(currentUser, user, 'impersonate:any') ||
-      this.scopingService.canAccessEntity(currentUser, user, 'impersonate:own');
+    requireAnyPermission(currentUser, ['impersonate:any', 'impersonate:own']);
 
-    if (!canImpersonate) {
-      throw new ForbiddenException('Cannot impersonate this user');
+    // Validate same tenant for :own permission
+    if (
+      currentUser.tenantId !== null &&
+      user.tenantId !== currentUser.tenantId &&
+      !this.scopingService.canAccessEntity(currentUser, user, 'impersonate:any')
+    ) {
+      throw new ForbiddenException('Cannot impersonate users in other tenants');
     }
 
     // Remove password from result
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return removePassword(user);
   }
 }

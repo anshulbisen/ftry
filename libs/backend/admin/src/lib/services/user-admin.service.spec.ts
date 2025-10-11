@@ -543,6 +543,112 @@ describe('UserAdminService', () => {
       });
     });
 
+    describe('tenant user limit validation', () => {
+      it('should prevent user creation when tenant maxUsers limit is reached', async () => {
+        // Arrange
+        const mockTenant = {
+          id: 'tenant-1',
+          maxUsers: 5,
+          _count: { users: 5 }, // Already at limit
+        };
+
+        // Mock transaction
+        const mockTx = {
+          tenant: {
+            findUnique: jest.fn().mockResolvedValue(mockTenant),
+          },
+          user: {
+            create: jest.fn(),
+          },
+        };
+        (prismaService.$transaction as jest.Mock).mockImplementation((callback) => {
+          return callback(mockTx);
+        });
+
+        // Act & Assert
+        await expect(service.create(mockTenantAdmin, createUserDto)).rejects.toThrow(
+          BadRequestException,
+        );
+        await expect(service.create(mockTenantAdmin, createUserDto)).rejects.toThrow(
+          'Tenant user limit reached',
+        );
+        expect(mockTx.user.create).not.toHaveBeenCalled();
+      });
+
+      it('should allow user creation when tenant has space available', async () => {
+        // Arrange
+        const mockTenant = {
+          id: 'tenant-1',
+          maxUsers: 5,
+          _count: { users: 3 }, // Below limit
+        };
+
+        const createdUser = {
+          id: 'new-user-id',
+          ...createUserDto,
+          status: 'active',
+        };
+
+        // Mock transaction
+        const mockTx = {
+          tenant: {
+            findUnique: jest.fn().mockResolvedValue(mockTenant),
+          },
+          user: {
+            create: jest.fn().mockResolvedValue(createdUser),
+          },
+        };
+        (prismaService.$transaction as jest.Mock).mockImplementation((callback) => {
+          return callback(mockTx);
+        });
+
+        // Act
+        const result = await service.create(mockTenantAdmin, createUserDto);
+
+        // Assert
+        expect(mockTx.tenant.findUnique).toHaveBeenCalledWith({
+          where: { id: 'tenant-1' },
+          select: { maxUsers: true, _count: { select: { users: true } } },
+        });
+        expect(mockTx.user.create).toHaveBeenCalled();
+        expect(result).toBeDefined();
+      });
+
+      it('should allow super admin to create user even when tenant is at limit', async () => {
+        // Arrange
+        const mockTenant = {
+          id: 'tenant-1',
+          maxUsers: 5,
+          _count: { users: 5 }, // At limit
+        };
+
+        const createdUser = {
+          id: 'new-user-id',
+          ...createUserDto,
+          status: 'active',
+        };
+
+        // Mock transaction - super admin bypasses tenant checks
+        const mockTx = {
+          tenant: {
+            findUnique: jest.fn().mockResolvedValue(mockTenant),
+          },
+          user: {
+            create: jest.fn().mockResolvedValue(createdUser),
+          },
+        };
+        (prismaService.$transaction as jest.Mock).mockImplementation((callback) => {
+          return callback(mockTx);
+        });
+
+        // Act
+        const result = await service.create(mockSuperAdmin, createUserDto);
+
+        // Assert - Super admin can exceed limits
+        expect(result).toBeDefined();
+      });
+    });
+
     describe('error handling', () => {
       it('should handle duplicate email error', async () => {
         // Arrange
@@ -559,6 +665,32 @@ describe('UserAdminService', () => {
         // Act & Assert
         await expect(service.create(mockSuperAdmin, createUserDto)).rejects.toThrow(
           'Database connection failed',
+        );
+      });
+
+      it('should rollback transaction on error', async () => {
+        // Arrange
+        const mockTx = {
+          tenant: {
+            findUnique: jest.fn().mockResolvedValue({
+              id: 'tenant-1',
+              maxUsers: 10,
+              _count: { users: 3 },
+            }),
+          },
+          user: {
+            create: jest.fn().mockRejectedValue(new Error('Create failed')),
+          },
+        };
+        (prismaService.$transaction as jest.Mock).mockImplementation((callback) => {
+          return callback(mockTx).catch((error: Error) => {
+            throw error;
+          });
+        });
+
+        // Act & Assert
+        await expect(service.create(mockTenantAdmin, createUserDto)).rejects.toThrow(
+          'Create failed',
         );
       });
     });

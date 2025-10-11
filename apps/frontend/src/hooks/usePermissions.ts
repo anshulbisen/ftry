@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import { useCurrentUser } from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
 
 /**
  * usePermissions Hook
  *
  * Provides permission checking utilities for admin features.
- * Integrates with the authentication system to access user permissions.
+ * Delegates to auth store for single source of truth.
  *
  * @example
  * const { hasPermission, canAccessResource } = usePermissions();
@@ -19,52 +19,8 @@ import { useCurrentUser } from '@/lib/api';
  * }
  */
 export const usePermissions = () => {
-  const { data: user } = useCurrentUser();
-
-  /**
-   * Check if user has a specific permission
-   */
-  const hasPermission = useCallback(
-    (permission: string): boolean => {
-      if (!user || !user.role?.permissions) {
-        return false;
-      }
-      return user.role.permissions.includes(permission);
-    },
-    [user],
-  );
-
-  /**
-   * Check if user has ANY of the specified permissions (OR logic)
-   */
-  const hasAnyPermission = useCallback(
-    (permissions: string[]): boolean => {
-      if (permissions.length === 0) {
-        return false;
-      }
-      if (!user || !user.role?.permissions) {
-        return false;
-      }
-      return permissions.some((p) => user.role.permissions.includes(p));
-    },
-    [user],
-  );
-
-  /**
-   * Check if user has ALL of the specified permissions (AND logic)
-   */
-  const hasAllPermissions = useCallback(
-    (permissions: string[]): boolean => {
-      if (permissions.length === 0) {
-        return true;
-      }
-      if (!user || !user.role?.permissions) {
-        return false;
-      }
-      return permissions.every((p) => user.role.permissions.includes(p));
-    },
-    [user],
-  );
+  // Delegate core permission checks to store (single source of truth)
+  const { hasPermission, hasAnyPermission, hasAllPermissions, isSuperAdmin, user } = useAuthStore();
 
   /**
    * Check if user can access a resource for a specific action
@@ -81,17 +37,6 @@ export const usePermissions = () => {
   );
 
   /**
-   * Check if user is a super admin
-   */
-  const isSuperAdmin = useCallback((): boolean => {
-    if (!user) {
-      return false;
-    }
-    // Super admin has tenantId === null
-    return user.tenantId === null;
-  }, [user]);
-
-  /**
    * Check if user can perform action across all tenants
    */
   const hasGlobalAccess = useCallback(
@@ -101,13 +46,26 @@ export const usePermissions = () => {
     [hasPermission],
   );
 
+  /**
+   * Check if user can perform action within their tenant
+   */
+  const hasTenantAccess = useCallback(
+    (resource: string, action: string): boolean => {
+      return hasPermission(`${resource}:${action}:tenant`);
+    },
+    [hasPermission],
+  );
+
   return {
+    // Core permission checks from store
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
-    canAccessResource,
     isSuperAdmin,
+    // Derived/convenience methods
+    canAccessResource,
     hasGlobalAccess,
-    permissions: user?.role?.permissions || [],
+    hasTenantAccess,
+    permissions: user?.permissions || user?.role?.permissions || [],
   };
 };

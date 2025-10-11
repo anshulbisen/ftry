@@ -70,8 +70,6 @@ describe('Auth Store', () => {
     // Reset store state before each test
     useAuthStore.setState({
       user: null,
-      accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
     });
@@ -82,8 +80,6 @@ describe('Auth Store', () => {
       const state = useAuthStore.getState();
 
       expect(state.user).toBeNull();
-      expect(state.accessToken).toBeNull();
-      expect(state.refreshToken).toBeNull();
       expect(state.isAuthenticated).toBe(false);
       expect(state.isLoading).toBe(false);
     });
@@ -93,7 +89,6 @@ describe('Auth Store', () => {
 
       expect(typeof state.setAuth).toBe('function');
       expect(typeof state.setUser).toBe('function');
-      expect(typeof state.updateTokens).toBe('function');
       expect(typeof state.logout).toBe('function');
       expect(typeof state.setLoading).toBe('function');
       expect(typeof state.hasPermission).toBe('function');
@@ -106,22 +101,17 @@ describe('Auth Store', () => {
   });
 
   describe('setAuth', () => {
-    it('should set user and tokens', () => {
-      const accessToken = 'test-access-token';
-      const refreshToken = 'test-refresh-token';
-
-      useAuthStore.getState().setAuth(mockUser, accessToken, refreshToken);
+    it('should set user and authentication state', () => {
+      useAuthStore.getState().setAuth(mockUser);
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
-      expect(state.accessToken).toBe(accessToken);
-      expect(state.refreshToken).toBe(refreshToken);
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
     });
 
     it('should set isAuthenticated to true', () => {
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+      useAuthStore.getState().setAuth(mockUser);
 
       expect(useAuthStore.getState().isAuthenticated).toBe(true);
     });
@@ -129,16 +119,16 @@ describe('Auth Store', () => {
     it('should clear loading state', () => {
       useAuthStore.setState({ isLoading: true });
 
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+      useAuthStore.getState().setAuth(mockUser);
 
       expect(useAuthStore.getState().isLoading).toBe(false);
     });
   });
 
   describe('setUser', () => {
-    it('should update user while preserving tokens', () => {
+    it('should update user data', () => {
       // Setup initial state
-      useAuthStore.getState().setAuth(mockUser, 'access-token', 'refresh-token');
+      useAuthStore.getState().setAuth(mockUser);
 
       // Update user
       const updatedUser = { ...mockUser, firstName: 'Jane' };
@@ -146,12 +136,10 @@ describe('Auth Store', () => {
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(updatedUser);
-      expect(state.accessToken).toBe('access-token');
-      expect(state.refreshToken).toBe('refresh-token');
     });
 
     it('should update user fields', () => {
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+      useAuthStore.getState().setAuth(mockUser);
 
       const updatedUser = { ...mockUser, email: 'newemail@example.com' };
       useAuthStore.getState().setUser(updatedUser);
@@ -160,46 +148,14 @@ describe('Auth Store', () => {
     });
   });
 
-  describe('updateTokens', () => {
-    it('should update access token', () => {
-      useAuthStore.getState().setAuth(mockUser, 'old-token', 'old-refresh');
-
-      useAuthStore.getState().updateTokens('new-access-token');
-
-      const state = useAuthStore.getState();
-      expect(state.accessToken).toBe('new-access-token');
-      expect(state.refreshToken).toBe('old-refresh'); // Unchanged
-    });
-
-    it('should update both tokens when refresh token provided', () => {
-      useAuthStore.getState().setAuth(mockUser, 'old-token', 'old-refresh');
-
-      useAuthStore.getState().updateTokens('new-access-token', 'new-refresh-token');
-
-      const state = useAuthStore.getState();
-      expect(state.accessToken).toBe('new-access-token');
-      expect(state.refreshToken).toBe('new-refresh-token');
-    });
-
-    it('should keep existing refresh token if not provided', () => {
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh-token');
-
-      useAuthStore.getState().updateTokens('new-token');
-
-      expect(useAuthStore.getState().refreshToken).toBe('refresh-token');
-    });
-  });
-
   describe('logout', () => {
     it('should clear all auth state', () => {
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+      useAuthStore.getState().setAuth(mockUser);
 
       useAuthStore.getState().logout();
 
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
-      expect(state.accessToken).toBeNull();
-      expect(state.refreshToken).toBeNull();
       expect(state.isAuthenticated).toBe(false);
     });
 
@@ -230,7 +186,7 @@ describe('Auth Store', () => {
 
   describe('Permission Checks', () => {
     beforeEach(() => {
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+      useAuthStore.getState().setAuth(mockUser);
     });
 
     describe('hasPermission', () => {
@@ -342,7 +298,7 @@ describe('Auth Store', () => {
       });
 
       it('should return false for non-super admin role', () => {
-        useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+        useAuthStore.getState().setAuth(mockUser);
 
         expect(useAuthStore.getState().isSuperAdmin()).toBe(false);
       });
@@ -366,7 +322,7 @@ describe('Auth Store', () => {
       });
 
       it('should return false for non-tenant owner role', () => {
-        useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+        useAuthStore.getState().setAuth(mockUser);
 
         expect(useAuthStore.getState().isTenantOwner()).toBe(false);
       });
@@ -390,7 +346,7 @@ describe('Auth Store', () => {
       });
 
       it('should return false for non-tenant admin role', () => {
-        useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+        useAuthStore.getState().setAuth(mockUser);
 
         expect(useAuthStore.getState().isTenantAdmin()).toBe(false);
       });
@@ -405,12 +361,11 @@ describe('Auth Store', () => {
 
   describe('Persistence', () => {
     it('should persist auth state to storage', () => {
-      useAuthStore.getState().setAuth(mockUser, 'access-token', 'refresh-token');
+      useAuthStore.getState().setAuth(mockUser);
 
       // Simulate page reload by creating a new store instance
       const newState = useAuthStore.getState();
       expect(newState.user).toBeDefined();
-      expect(newState.accessToken).toBeDefined();
       expect(newState.isAuthenticated).toBe(true);
     });
 
@@ -426,12 +381,12 @@ describe('Auth Store', () => {
 
   describe('Edge Cases', () => {
     it('should handle multiple setAuth calls', () => {
-      useAuthStore.getState().setAuth(mockUser, 'token1', 'refresh1');
-      useAuthStore.getState().setAuth(mockUser, 'token2', 'refresh2');
+      useAuthStore.getState().setAuth(mockUser);
+      useAuthStore.getState().setAuth(mockUser);
 
       const state = useAuthStore.getState();
-      expect(state.accessToken).toBe('token2');
-      expect(state.refreshToken).toBe('refresh2');
+      expect(state.user).toEqual(mockUser);
+      expect(state.isAuthenticated).toBe(true);
     });
 
     it('should handle setUser without prior setAuth', () => {
@@ -450,7 +405,7 @@ describe('Auth Store', () => {
     });
 
     it('should handle logout multiple times', () => {
-      useAuthStore.getState().setAuth(mockUser, 'token', 'refresh');
+      useAuthStore.getState().setAuth(mockUser);
       useAuthStore.getState().logout();
       useAuthStore.getState().logout();
 

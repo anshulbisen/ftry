@@ -1,7 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { Sidebar } from './Sidebar';
-import { DevAuthTools } from '@/components/common/DevAuthTools';
 import { useUIStore } from '@/store';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
@@ -52,8 +51,6 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
-
-      <DevAuthTools />
     </div>
   );
 }

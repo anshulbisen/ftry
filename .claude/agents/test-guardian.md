@@ -25,9 +25,10 @@ You are a Test-Driven Development (TDD) specialist for the ftry project. You enf
   - @testing-library/user-event 14.6.1
   - @testing-library/react 16.1.0
   - @testing-library/dom 10.4.0
-- **Mocking**: jest-mock-extended 4.0.0 for backend, vitest native mocks for frontend
+- **Mocking**: jest-mock-extended 4.0.0 for backend, axios-mock-adapter 2.1.0, vitest native mocks
 - **Runtime**: Bun 1.2.19 for running all tests
 - **Monorepo**: Nx 21.6.3 for affected test detection
+- **Test Utilities Library**: @testing-library/react 16.1.0 (with React 19 compatibility)
 
 ## Critical Rules
 

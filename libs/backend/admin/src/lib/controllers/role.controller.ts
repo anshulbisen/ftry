@@ -30,7 +30,7 @@ import { type UserWithPermissions } from '@ftry/shared/types';
  */
 @ApiTags('Admin - Roles')
 @ApiBearerAuth()
-@Controller('v1/admin/roles')
+@Controller('admin/roles')
 @UseGuards(JwtAuthGuard, AdminPermissionGuard)
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

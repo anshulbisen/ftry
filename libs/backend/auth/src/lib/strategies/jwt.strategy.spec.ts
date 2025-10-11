@@ -216,9 +216,9 @@ describe('JwtStrategy', () => {
       });
 
       it('should throw UnauthorizedException if RLS context setting fails', async () => {
-        prismaService.setTenantContext = jest
-          .fn()
-          .mockRejectedValue(new Error('Database connection failed'));
+        (prismaService.setTenantContext as jest.Mock).mockRejectedValue(
+          new Error('Database connection failed'),
+        );
 
         await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(UnauthorizedException);
         await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(
@@ -270,9 +270,9 @@ describe('JwtStrategy', () => {
       });
 
       it('should throw UnauthorizedException if RLS context setting fails for cached user', async () => {
-        prismaService.setTenantContext = jest
-          .fn()
-          .mockRejectedValue(new Error('Database connection failed'));
+        (prismaService.setTenantContext as jest.Mock).mockRejectedValue(
+          new Error('Database connection failed'),
+        );
 
         await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(UnauthorizedException);
       });
@@ -318,7 +318,7 @@ describe('JwtStrategy', () => {
       });
 
       it('should fail the entire request if RLS context cannot be set', async () => {
-        prismaService.setTenantContext = jest.fn().mockRejectedValue(new Error('RLS failure'));
+        (prismaService.setTenantContext as jest.Mock).mockRejectedValue(new Error('RLS failure'));
 
         // Request should fail completely
         await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(UnauthorizedException);

@@ -149,7 +149,7 @@ This catalog provides a comprehensive reference for all specialist agents and sl
 
 ---
 
-## 📝 Slash Commands (22 Total)
+## 📝 Slash Commands (25 Total)
 
 ### Core Development Commands
 
@@ -284,6 +284,18 @@ This catalog provides a comprehensive reference for all specialist agents and sl
 - **Operations**: parallel, sequence, deploy, feature, review-pr, optimize
 - **Example**: `/manage-agents parallel "review:frontend-expert,backend-expert"`
 
+### Repository Maintenance
+
+#### `/sync-repo [scope]`
+
+- **Agents Used**: ALL specialists in parallel (Phase 2)
+- **Purpose**: Complete repository synchronization after feature implementation
+- **Phases**:
+  1. Quality Gate (sequential): /check-all
+  2. Parallel Maintenance: docs, agents, commands, review, security, boundaries
+- **Example**: `/sync-repo authentication`
+- **When**: After completing features, before PRs, weekly maintenance
+
 ### Git & Workflow
 
 #### `/commit [message] [--push]`
@@ -312,6 +324,7 @@ This catalog provides a comprehensive reference for all specialist agents and sl
 | Write tests first    | `/test-first [component] unit`        |
 | Update all agents    | `/update-agents`                      |
 | Optimize Claude      | `/optimize-claude`                    |
+| After feature done   | `/sync-repo`                          |
 
 ---
 
@@ -441,10 +454,10 @@ This catalog is maintained by:
 
 ---
 
-**Last Updated**: 2025-10-08
-**Version**: 1.0.0
+**Last Updated**: 2025-10-10
+**Version**: 1.1.0
 **Total Agents**: 17
-**Total Commands**: 22
+**Total Commands**: 25
 
 ---
 

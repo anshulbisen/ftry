@@ -21,7 +21,7 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({ children, label = 'Actio
     <div className="relative inline-block text-left">
       <button
         type="button"
-        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+        className="inline-flex justify-center w-full rounded-md border border-input shadow-sm px-4 py-2 bg-background text-sm font-medium text-foreground hover:bg-accent"
       >
         {label}
       </button>
@@ -48,8 +48,8 @@ export const ActionMenuItem: React.FC<ActionMenuItemProps> = ({
     <button
       onClick={onClick}
       className={`block w-full text-left px-4 py-2 text-sm ${
-        destructive ? 'text-red-600' : 'text-gray-700'
-      } hover:bg-gray-100`}
+        destructive ? 'text-destructive' : 'text-foreground'
+      } hover:bg-accent`}
     >
       {icon && <span className="mr-2">{icon}</span>}
       {children}

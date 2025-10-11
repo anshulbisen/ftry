@@ -49,7 +49,9 @@ describe('adminApi', () => {
 
         const result = await adminApi.getTenants();
 
-        expect(apiClient.apiClient.get).toHaveBeenCalledWith('/admin/tenants');
+        expect(apiClient.apiClient.get).toHaveBeenCalledWith('/admin/tenants', {
+          params: undefined,
+        });
         expect(result).toEqual(mockTenants);
       });
     });
@@ -360,7 +362,9 @@ describe('adminApi', () => {
 
         const result = await adminApi.getRoles();
 
-        expect(apiClient.apiClient.get).toHaveBeenCalledWith('/admin/roles');
+        expect(apiClient.apiClient.get).toHaveBeenCalledWith('/admin/roles', {
+          params: undefined,
+        });
         expect(result).toEqual(mockRoles);
       });
     });

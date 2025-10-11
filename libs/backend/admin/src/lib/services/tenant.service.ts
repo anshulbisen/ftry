@@ -5,7 +5,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '@ftry/shared/prisma';
+import { UserWithPermissions, Tenant } from '@ftry/shared/types';
 import { DataScopingService } from './data-scoping.service';
+import { CreateTenantDto, UpdateTenantDto, TenantFilterDto } from '../dto/tenant';
+import { requirePermission, requireAnyPermission } from '../utils/permission.utils';
 
 /**
  * Tenant Service
@@ -29,10 +32,10 @@ export class TenantService {
    * - Super admin: returns all tenants
    * - Tenant owner: returns only their tenant
    */
-  async findAll(currentUser: any, filters?: any) {
+  async findAll(currentUser: UserWithPermissions, filters?: TenantFilterDto): Promise<Tenant[]> {
     // Build base query
     const baseQuery = {
-      where: filters || {},
+      where: (filters as Record<string, unknown>) || {},
       orderBy: { createdAt: 'desc' as const },
     };
 
@@ -54,7 +57,7 @@ export class TenantService {
   /**
    * Find single tenant by ID with permission check
    */
-  async findOne(currentUser: any, id: string) {
+  async findOne(currentUser: UserWithPermissions, id: string): Promise<Tenant> {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id },
     });
@@ -64,13 +67,9 @@ export class TenantService {
     }
 
     // Check if user can access this tenant
-    const canAccess =
-      this.scopingService.canAccessEntity(currentUser, tenant, 'tenants:read:all') ||
-      this.scopingService.canAccessEntity(currentUser, tenant, 'tenants:read:own');
-
-    if (!canAccess) {
-      throw new ForbiddenException('Cannot access this tenant');
-    }
+    // Tenants don't have tenantId - use id instead for permission check
+    const entityWithTenantId = { ...tenant, tenantId: tenant.id };
+    requirePermission(this.scopingService, currentUser, entityWithTenantId, 'read', 'tenants');
 
     return tenant;
   }
@@ -78,14 +77,12 @@ export class TenantService {
   /**
    * Create new tenant (super admin only)
    */
-  async create(currentUser: any, dto: any) {
+  async create(currentUser: UserWithPermissions, dto: CreateTenantDto): Promise<Tenant> {
     // Only super admins can create tenants
-    if (!currentUser.permissions.includes('tenants:create')) {
-      throw new ForbiddenException('Only super admins can create tenants');
-    }
+    requireAnyPermission(currentUser, ['tenants:create']);
 
     // Normalize slug to lowercase
-    const slug = dto.slug ? dto.slug.toLowerCase() : dto.slug;
+    const slug = dto.slug ? dto.slug.toLowerCase() : '';
 
     // Create tenant with default values
     return this.prisma.tenant.create({
@@ -105,7 +102,11 @@ export class TenantService {
   /**
    * Update tenant
    */
-  async update(currentUser: any, id: string, dto: any) {
+  async update(
+    currentUser: UserWithPermissions,
+    id: string,
+    dto: UpdateTenantDto,
+  ): Promise<Tenant> {
     // Get the tenant to check access
     const tenant = await this.prisma.tenant.findUnique({
       where: { id },
@@ -116,13 +117,9 @@ export class TenantService {
     }
 
     // Check if current user can update this tenant
-    const canUpdate =
-      this.scopingService.canAccessEntity(currentUser, tenant, 'tenants:update:all') ||
-      this.scopingService.canAccessEntity(currentUser, tenant, 'tenants:update:own');
-
-    if (!canUpdate) {
-      throw new ForbiddenException('Cannot update this tenant');
-    }
+    // Tenants don't have tenantId - use id instead for permission check
+    const entityWithTenantId = { ...tenant, tenantId: tenant.id };
+    requirePermission(this.scopingService, currentUser, entityWithTenantId, 'update', 'tenants');
 
     // Normalize slug if provided
     const updateData = { ...dto };
@@ -139,11 +136,9 @@ export class TenantService {
   /**
    * Suspend tenant (super admin only)
    */
-  async suspend(currentUser: any, id: string) {
+  async suspend(currentUser: UserWithPermissions, id: string): Promise<Tenant> {
     // Only super admins can suspend tenants
-    if (!currentUser.permissions.includes('tenants:suspend')) {
-      throw new ForbiddenException('Only super admins can suspend tenants');
-    }
+    requireAnyPermission(currentUser, ['tenants:suspend']);
 
     // Get the tenant
     const tenant = await this.prisma.tenant.findUnique({
@@ -172,11 +167,9 @@ export class TenantService {
   /**
    * Activate suspended tenant (super admin only)
    */
-  async activate(currentUser: any, id: string) {
+  async activate(currentUser: UserWithPermissions, id: string): Promise<Tenant> {
     // Only super admins can activate tenants
-    if (!currentUser.permissions.includes('tenants:suspend')) {
-      throw new ForbiddenException('Only super admins can activate tenants');
-    }
+    requireAnyPermission(currentUser, ['tenants:suspend']);
 
     // Get the tenant
     const tenant = await this.prisma.tenant.findUnique({
@@ -205,11 +198,9 @@ export class TenantService {
   /**
    * Delete tenant (super admin only)
    */
-  async delete(currentUser: any, id: string) {
+  async delete(currentUser: UserWithPermissions, id: string): Promise<Tenant> {
     // Only super admins can delete tenants
-    if (!currentUser.permissions.includes('tenants:delete')) {
-      throw new ForbiddenException('Only super admins can delete tenants');
-    }
+    requireAnyPermission(currentUser, ['tenants:delete']);
 
     // Get the tenant with user count
     const tenant = await this.prisma.tenant.findUnique({

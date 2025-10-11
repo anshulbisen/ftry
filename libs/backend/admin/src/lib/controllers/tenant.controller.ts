@@ -30,7 +30,7 @@ import { type UserWithPermissions } from '@ftry/shared/types';
  */
 @ApiTags('Admin - Tenants')
 @ApiBearerAuth()
-@Controller('v1/admin/tenants')
+@Controller('admin/tenants')
 @UseGuards(JwtAuthGuard, AdminPermissionGuard)
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}

@@ -38,13 +38,13 @@ export const UserCard = memo<UserCardProps>(
     const getStatusBadge = (status: string) => {
       switch (status) {
         case 'active':
-          return <Badge className="bg-green-100 text-green-700">Active</Badge>;
+          return <Badge variant="default">Active</Badge>;
         case 'inactive':
-          return <Badge className="bg-gray-100 text-gray-700">Inactive</Badge>;
+          return <Badge variant="secondary">Inactive</Badge>;
         case 'pending':
-          return <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>;
+          return <Badge variant="outline">Pending</Badge>;
         default:
-          return <Badge>{status}</Badge>;
+          return <Badge variant="outline">{status}</Badge>;
       }
     };
 

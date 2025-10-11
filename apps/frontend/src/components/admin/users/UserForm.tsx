@@ -49,9 +49,11 @@ const userFormSchema = z.object({
 type UserFormValues = z.infer<typeof userFormSchema>;
 
 interface UserFormProps {
-  user?: UserListItem;
+  entity?: UserListItem;
   open: boolean;
   onClose: () => void;
+  onSuccess?: (entity: UserListItem) => void;
+  initialData?: any;
 }
 
 /**
@@ -64,7 +66,7 @@ interface UserFormProps {
  * - Role selection filtered by permissions
  * - Password optional on edit
  */
-export const UserForm: React.FC<UserFormProps> = ({ user, open, onClose }) => {
+export const UserForm: React.FC<UserFormProps> = ({ entity: user, open, onClose }) => {
   const { hasGlobalAccess } = usePermissions();
   const { data: currentUser } = useCurrentUser();
   const isEditing = !!user;
