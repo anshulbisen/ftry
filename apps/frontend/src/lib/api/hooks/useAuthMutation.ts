@@ -84,10 +84,8 @@ export function useLoginMutation(
  * logout();
  * ```
  */
-export function useLogoutMutation(
-  options?: Omit<UseMutationOptions<void, Error, void>, 'mutationFn'>,
-) {
-  return useMutation<void, Error, void>({
+export function useLogoutMutation(options?: Omit<UseMutationOptions<void>, 'mutationFn'>) {
+  return useMutation<void>({
     mutationFn: async () => {
       await apiClient.post('/auth/logout');
     },

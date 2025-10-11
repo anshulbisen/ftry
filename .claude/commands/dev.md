@@ -62,7 +62,7 @@ concurrently --kill-others-on-fail \
 ### Backend (Port 3001)
 
 - **Framework**: NestJS 11
-- **Runtime**: Bun 1.2.19
+- **Runtime**: Bun 1.3.0
 - **Watch Mode**: Auto-restart on changes
 - **Build Tool**: Webpack (SWC)
 - **API Docs**: Swagger at `/api/docs`
@@ -252,7 +252,7 @@ bun run build  # Uses nx affected
 
 ## Technology Stack
 
-- **Package Manager**: Bun 1.2.19
+- **Package Manager**: Bun 1.3.0
 - **Monorepo**: Nx 21.6.3
 - **Frontend**: React 19 + Vite 7.0.0
 - **Backend**: NestJS 11 + Webpack

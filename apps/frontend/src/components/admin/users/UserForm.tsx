@@ -53,7 +53,7 @@ interface UserFormProps {
   open: boolean;
   onClose: () => void;
   onSuccess?: (entity: UserListItem) => void;
-  initialData?: any;
+  initialData?: Partial<UserFormValues>;
 }
 
 /**

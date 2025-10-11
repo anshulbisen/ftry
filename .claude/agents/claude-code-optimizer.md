@@ -108,7 +108,7 @@ wc -l CLAUDE.md
 ## Environment Setup
 
 - Node: Use bun exclusively (never npm/yarn/pnpm)
-- Required: bun 1.2.19+
+- Required: Bun 1.3.0+
 - Git hooks auto-installed via Husky
 
 ## Gotchas & Warnings

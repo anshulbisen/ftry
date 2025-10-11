@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api';
-import type { SafeUser, Role, Tenant, Permission, ApiResponse } from '@ftry/shared/types';
+import type { SafeUser, Role, Tenant, Permission } from '@ftry/shared/types';
 
 /**
  * Admin API Client
@@ -11,18 +11,23 @@ import type { SafeUser, Role, Tenant, Permission, ApiResponse } from '@ftry/shar
 // Base URL for admin endpoints
 const ADMIN_BASE = '/admin';
 
-// Types for admin operations
+// Types for admin operations - include index signature for DataTable compatibility
 export interface TenantWithStats extends Tenant {
   userCount: number;
+  [key: string]: unknown;
 }
 
 export interface RoleWithStats extends Role {
   userCount: number;
   permissionCount: number;
+  [key: string]: unknown;
 }
 
 // Type alias for user list items - includes all SafeUser properties
-export type UserListItem = SafeUser;
+// Add index signature for DataTable compatibility
+export type UserListItem = SafeUser & {
+  [key: string]: unknown;
+};
 
 /**
  * Tenant API

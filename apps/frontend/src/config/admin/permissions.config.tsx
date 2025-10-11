@@ -12,6 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { useAllPermissions } from '@/hooks/useAdminData';
 import type { ResourceConfig } from '@/types/admin';
 import type { Permission } from '@ftry/shared/types';
+import type { UseMutationResult } from '@tanstack/react-query';
+
+// Add index signature for DataTable compatibility
+type PermissionWithIndex = Permission & { [key: string]: unknown };
 
 /**
  * Permission Resource Configuration
@@ -20,7 +24,7 @@ import type { Permission } from '@ftry/shared/types';
  * Permissions cannot be created or deleted - they are defined in the system.
  */
 export const permissionConfig: ResourceConfig<
-  Permission,
+  PermissionWithIndex,
   never, // No create operation
   never // No update operation
 > = {
@@ -43,7 +47,8 @@ export const permissionConfig: ResourceConfig<
 
   // ========== TanStack Query Hooks ==========
   hooks: {
-    useList: () => useAllPermissions(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion required for index signature compatibility
+    useList: () => useAllPermissions() as any,
     // No create, update, delete hooks - return disabled mutations
     useCreate: () =>
       ({
@@ -58,8 +63,16 @@ export const permissionConfig: ResourceConfig<
         isError: false,
         isSuccess: false,
         reset: () => {},
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
+        context: undefined,
+        data: undefined,
+        error: null,
+        failureCount: 0,
+        failureReason: null,
+        isPaused: false,
+        status: 'idle' as const,
+        variables: undefined,
+        submittedAt: 0,
+      }) as UseMutationResult<never, Error, never>,
     useUpdate: () =>
       ({
         mutate: () => {
@@ -73,8 +86,16 @@ export const permissionConfig: ResourceConfig<
         isError: false,
         isSuccess: false,
         reset: () => {},
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
+        context: undefined,
+        data: undefined,
+        error: null,
+        failureCount: 0,
+        failureReason: null,
+        isPaused: false,
+        status: 'idle' as const,
+        variables: undefined,
+        submittedAt: 0,
+      }) as UseMutationResult<never, Error, { id: string; data: never }>,
     useDelete: () =>
       ({
         mutate: () => {
@@ -88,8 +109,16 @@ export const permissionConfig: ResourceConfig<
         isError: false,
         isSuccess: false,
         reset: () => {},
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
+        context: undefined,
+        data: undefined,
+        error: null,
+        failureCount: 0,
+        failureReason: null,
+        isPaused: false,
+        status: 'idle' as const,
+        variables: undefined,
+        submittedAt: 0,
+      }) as UseMutationResult<undefined | void, Error, string>,
   },
 
   // ========== Table Configuration ==========

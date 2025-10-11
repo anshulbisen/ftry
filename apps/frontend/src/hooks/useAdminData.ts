@@ -19,7 +19,7 @@ import type { SafeUser, Role, Tenant } from '@ftry/shared/types';
 export const useUsers = (filters?: Record<string, unknown>) => {
   return useQuery({
     queryKey: ['admin', 'users', filters],
-    queryFn: () => adminApi.users.getAll(filters),
+    queryFn: async () => adminApi.users.getAll(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -30,7 +30,7 @@ export const useUsers = (filters?: Record<string, unknown>) => {
 export const useTenants = (filters?: Record<string, unknown>) => {
   return useQuery({
     queryKey: ['admin', 'tenants', filters],
-    queryFn: () => adminApi.tenants.getAll(filters),
+    queryFn: async () => adminApi.tenants.getAll(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -41,7 +41,7 @@ export const useTenants = (filters?: Record<string, unknown>) => {
 export const useRoles = (filters?: Record<string, unknown>) => {
   return useQuery({
     queryKey: ['admin', 'roles', filters],
-    queryFn: () => adminApi.roles.getAll(filters),
+    queryFn: async () => adminApi.roles.getAll(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -52,7 +52,7 @@ export const useRoles = (filters?: Record<string, unknown>) => {
 export const useAllPermissions = () => {
   return useQuery({
     queryKey: ['admin', 'permissions'],
-    queryFn: () => adminApi.permissions.getAll(),
+    queryFn: async () => adminApi.permissions.getAll(),
     staleTime: 30 * 60 * 1000, // 30 minutes - permissions rarely change
   });
 };
@@ -64,7 +64,7 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userData: {
+    mutationFn: async (userData: {
       email: string;
       password: string;
       firstName: string;
@@ -86,7 +86,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       data,
     }: {
@@ -112,7 +112,7 @@ export const useDeleteUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: string) => adminApi.users.delete(userId),
+    mutationFn: async (userId: string) => adminApi.users.delete(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
     },
@@ -126,7 +126,7 @@ export const useCreateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Tenant>) => adminApi.tenants.create(data),
+    mutationFn: async (data: Partial<Tenant>) => adminApi.tenants.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });
     },
@@ -140,7 +140,7 @@ export const useUpdateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Tenant> }) =>
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Tenant> }) =>
       adminApi.tenants.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });
@@ -155,7 +155,7 @@ export const useDeleteTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (tenantId: string) => adminApi.tenants.delete(tenantId),
+    mutationFn: async (tenantId: string) => adminApi.tenants.delete(tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });
     },
@@ -169,7 +169,7 @@ export const useSuspendTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (tenantId: string) => adminApi.tenants.suspend(tenantId),
+    mutationFn: async (tenantId: string) => adminApi.tenants.suspend(tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });
     },
@@ -183,7 +183,7 @@ export const useActivateTenant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (tenantId: string) => adminApi.tenants.activate(tenantId),
+    mutationFn: async (tenantId: string) => adminApi.tenants.activate(tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });
     },
@@ -197,7 +197,7 @@ export const useCreateRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
+    mutationFn: async (data: {
       name: string;
       description?: string;
       permissions: string[];
@@ -217,7 +217,7 @@ export const useUpdateRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       data,
     }: {
@@ -242,7 +242,7 @@ export const useDeleteRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (roleId: string) => adminApi.roles.delete(roleId),
+    mutationFn: async (roleId: string) => adminApi.roles.delete(roleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'roles'] });
     },

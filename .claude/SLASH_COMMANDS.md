@@ -2,7 +2,7 @@
 
 Complete reference for all custom slash commands in the ftry project.
 
-**Tech Stack Context:** React 19, NestJS 11, PostgreSQL 18, Prisma 6, Nx 21.6.3, Bun 1.2.19
+**Tech Stack Context:** React 19, NestJS 11, PostgreSQL 18, Prisma 6, Nx 21.6.3, Bun 1.3.0
 
 ---
 
@@ -47,7 +47,7 @@ Start development servers with auto-cleanup and hot reload.
 - Hot reload (HMR for frontend, watch mode for backend)
 - Concurrent execution with failure handling
 
-**Tech:** Vite 7.0.0, NestJS 11, Bun 1.2.19, concurrently 9.2.1
+**Tech:** Vite 7.0.0, NestJS 11, Bun 1.3.0, concurrently 9.2.1
 
 ---
 
@@ -823,7 +823,7 @@ Orchestrate multiple agents for complex workflows.
 **Backend:**
 
 - NestJS: 11.0.0
-- Bun: 1.2.19 (runtime + package manager)
+- Bun: 1.3.0 (runtime + package manager)
 - Passport JWT: 4.0.1
 - Bull: 11.0.3 (queues)
 - Pino: 10.0.0 (logging)

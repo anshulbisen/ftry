@@ -63,7 +63,7 @@ export class CreateTenantDto {
   })
   @IsEnum(['free', 'basic', 'pro', 'enterprise'])
   @IsOptional()
-  subscriptionPlan?: 'free' | 'basic' | 'pro' | 'enterprise';
+  subscriptionPlan?: 'basic' | 'enterprise' | 'free' | 'pro';
 
   @ApiPropertyOptional({
     description: 'Maximum number of users allowed',

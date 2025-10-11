@@ -4,7 +4,8 @@
  * Wrapper component that provides React Query context to the application
  */
 
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient as defaultQueryClient } from './query-client';
 
 interface QueryProviderProps {

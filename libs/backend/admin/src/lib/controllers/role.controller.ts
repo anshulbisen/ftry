@@ -17,7 +17,7 @@ import { AdminPermissionGuard } from '../guards/admin-permission.guard';
 import { RequirePermissions } from '../decorators/require-permissions.decorator';
 import { RoleService } from '../services/role.service';
 import { CreateRoleDto, UpdateRoleDto, AssignPermissionsDto } from '../dto/role';
-import { type UserWithPermissions } from '@ftry/shared/types';
+import type { UserWithPermissions } from '@ftry/shared/types';
 
 /**
  * Unified Role Management Controller
@@ -45,7 +45,10 @@ export class RoleController {
   @ApiOperation({ summary: 'List all roles (scoped by permissions)' })
   @ApiResponse({ status: 200, description: 'List of roles' })
   @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
-  async findAll(@CurrentUser() user: UserWithPermissions, @Query() filters?: any) {
+  async findAll(
+    @CurrentUser() user: UserWithPermissions,
+    @Query() filters?: Record<string, unknown>,
+  ): Promise<unknown> {
     return this.roleService.findAll(user, filters);
   }
 

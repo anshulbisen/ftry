@@ -40,6 +40,7 @@ import { CacheService } from './cache.service';
           };
         } catch (error) {
           console.warn('⚠️  Failed to initialize Redis cache store. Using in-memory cache.');
+
           console.warn(`   Error: ${error instanceof Error ? error.message : String(error)}`);
           // Fallback to in-memory cache
           return {

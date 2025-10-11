@@ -41,10 +41,8 @@ export const CURRENT_USER_QUERY_KEY = ['auth', 'currentUser'];
  * });
  * ```
  */
-export function useCurrentUser(
-  options?: Omit<UseQueryOptions<SafeUser, Error>, 'queryKey' | 'queryFn'>,
-) {
-  return useQuery<SafeUser, Error>({
+export function useCurrentUser(options?: Omit<UseQueryOptions<SafeUser>, 'queryFn' | 'queryKey'>) {
+  return useQuery<SafeUser>({
     queryKey: CURRENT_USER_QUERY_KEY,
     queryFn: async () => {
       const response = await apiClient.get<{ data: SafeUser }>('/auth/me');

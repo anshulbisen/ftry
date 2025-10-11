@@ -1,12 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import type { DeepMockProxy } from 'jest-mock-extended';
+import { mockDeep } from 'jest-mock-extended';
 import { JwtStrategy } from './jwt.strategy';
 import { UserValidationService } from '../services/user-validation.service';
 import { PrismaService } from '@ftry/shared/prisma';
 import { CacheService } from '@ftry/backend/cache';
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import type { JwtPayload, UserWithPermissions } from '@ftry/shared/types';
 
 describe('JwtStrategy', () => {

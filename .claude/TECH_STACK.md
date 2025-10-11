@@ -59,7 +59,7 @@ Complete technology stack reference for the ftry Salon & Spa Management SaaS pla
 ### Core Framework
 
 - **NestJS**: 11.0.0 - Progressive Node.js framework
-- **Bun**: 1.2.19 - JavaScript runtime and package manager
+- **Bun**: 1.3.0 - JavaScript runtime and package manager
 - **TypeScript**: 5.9.2 - Static type checking (strict mode)
 - **reflect-metadata**: 0.1.13 - Metadata reflection API
 - **rxjs**: 7.8.0 - Reactive extensions
@@ -206,7 +206,7 @@ Complete technology stack reference for the ftry Salon & Spa Management SaaS pla
 
 ### Package Manager & Runtime
 
-- **Bun**: 1.2.19 - Fast all-in-one JavaScript runtime
+- **Bun**: 1.3.0 - Fast all-in-one JavaScript runtime
 
 ### CLI Tools
 

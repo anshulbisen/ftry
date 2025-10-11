@@ -1,5 +1,5 @@
 import { apiClient } from '../api/axios-client';
-import { SafeUser, RegisterDto } from '@ftry/shared/types';
+import type { SafeUser, RegisterDto } from '@ftry/shared/types';
 
 /**
  * Authentication API endpoints

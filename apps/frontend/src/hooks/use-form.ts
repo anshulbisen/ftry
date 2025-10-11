@@ -1,4 +1,5 @@
-import { useState, useCallback, FormEvent } from 'react';
+import type { FormEvent } from 'react';
+import { useState, useCallback } from 'react';
 import { useFormState } from './use-form-state';
 
 interface UseFormOptions<T> {
@@ -18,7 +19,7 @@ interface FormField<T> {
  * Generic form hook that handles state, validation, and submission
  * Eliminates duplicate form logic across components
  */
-export function useForm<T extends Record<string, any>>({
+export function useForm<T extends Record<string, unknown>>({
   initialValues,
   onSubmit,
   validate,
@@ -64,7 +65,7 @@ export function useForm<T extends Record<string, any>>({
         return;
       }
 
-      await execute(() => onSubmit(values));
+      await execute(async () => onSubmit(values));
     },
     [values, onSubmit, validateForm, execute, clearError],
   );

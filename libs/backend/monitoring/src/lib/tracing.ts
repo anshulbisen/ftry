@@ -49,7 +49,9 @@ export function initTracing(): NodeSDK | null {
   const grafanaCloudEnabled = process.env['GRAFANA_CLOUD_ENABLED'] === 'true';
   if (grafanaCloudEnabled && !process.env['GRAFANA_CLOUD_API_TOKEN']) {
     console.warn('⚠️  Grafana Cloud enabled but GRAFANA_CLOUD_API_TOKEN not set');
+
     console.warn('   Please configure Grafana Cloud credentials in .env.local');
+
     console.warn('   See docs/GRAFANA_CLOUD_SETUP.md for instructions');
     return null;
   }
@@ -209,10 +211,11 @@ export function initTracing(): NodeSDK | null {
     sdk.start();
 
     // Graceful shutdown
-    const shutdown = async () => {
+    const shutdown = async (): Promise<void> => {
       try {
         console.warn('Shutting down OpenTelemetry SDK...');
         await sdk.shutdown();
+
         console.warn('OpenTelemetry SDK shut down successfully');
       } catch (error) {
         console.error('Error shutting down OpenTelemetry SDK:', error);
@@ -226,10 +229,15 @@ export function initTracing(): NodeSDK | null {
     process.on('SIGINT', shutdown);
 
     console.warn('✅ OpenTelemetry tracing initialized');
+
     console.warn(`   Service: ${serviceName}`);
+
     console.warn(`   Version: ${process.env['APP_VERSION'] || '1.0.0'}`);
+
     console.warn(`   Environment: ${environmentLabel}`);
+
     console.warn(`   Target: ${grafanaCloudEnabled ? '📡 Grafana Cloud' : '🏠 Local Tempo'}`);
+
     console.warn(`   Endpoint: ${otlpEndpoint}`);
     if (developerName) {
       console.warn(`   Developer: ${developerName}`);
@@ -238,8 +246,11 @@ export function initTracing(): NodeSDK | null {
     return sdk;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+
     console.warn('⚠️  Failed to initialize OpenTelemetry tracing:', errorMessage);
+
     console.warn('   Application will continue without distributed tracing');
+
     console.warn('   To enable monitoring, ensure Tempo is running and accessible');
     return null;
   }

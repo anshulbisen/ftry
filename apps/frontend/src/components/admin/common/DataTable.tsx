@@ -48,19 +48,21 @@
  */
 
 import React, { useState, useMemo, useCallback, useEffect, memo } from 'react';
+import type {
+  ColumnDef,
+  SortingState,
+  ColumnFiltersState,
+  VisibilityState,
+  RowSelectionState,
+  PaginationState,
+} from '@tanstack/react-table';
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  ColumnDef,
   flexRender,
-  SortingState,
-  ColumnFiltersState,
-  VisibilityState,
-  RowSelectionState,
-  PaginationState,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -90,7 +92,7 @@ export interface DataTableProps<T> {
   /** Array of data to display in the table */
   data: T[] | null | undefined;
   /** TanStack Table column definitions */
-  columns: ColumnDef<T>[];
+  columns: Array<ColumnDef<T>>;
   /** Show loading state */
   loading?: boolean;
   /** Custom message when no data is available */
@@ -198,7 +200,7 @@ export const DataTable = memo(function DataTable<T extends Record<string, unknow
   }, [data, debouncedGlobalFilter, searchableFields]);
 
   // Add selection column if enabled
-  const columns = useMemo<ColumnDef<T>[]>(() => {
+  const columns = useMemo<Array<ColumnDef<T>>>(() => {
     if (!enableRowSelection) {
       return baseColumns;
     }

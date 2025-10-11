@@ -25,7 +25,7 @@ export interface PermissionGateProps {
    * Required permission(s) - can be a single string or array
    * If array, user needs ANY of the permissions (OR logic)
    */
-  permissions: string | string[];
+  permissions: string[] | string;
 
   /**
    * Optional component to render when permission is denied

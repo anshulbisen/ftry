@@ -6,9 +6,9 @@ Notable changes, updates, and breaking changes in the ftry codebase.
 
 ### Runtime Upgrade
 
-#### Bun 1.2.19 → 1.3.0
+#### Bun 1.3.0 → 1.3.0
 
-**Updated**: Package manager and runtime from Bun 1.2.19 to 1.3.0
+**Updated**: Package manager and runtime from Bun 1.3.0 to 1.3.0
 
 **Changes**:
 

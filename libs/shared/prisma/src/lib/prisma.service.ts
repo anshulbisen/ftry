@@ -105,7 +105,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   /**
    * Sleep utility for retry delays
    */
-  private sleep(ms: number): Promise<void> {
+  private async sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 

@@ -56,12 +56,19 @@ apps/frontend/src/
 └── main.tsx            # Entry point
 ```
 
-## Recent Consolidation (2025-10-11)
+## Frontend Code Organization (2025-10-11)
 
-Frontend libraries were consolidated into `apps/frontend/src/components/` to reduce complexity. Future extraction will be based on proven reuse patterns.
+**Key Architectural Decision**: All frontend code lives in `apps/frontend/src/` and will NEVER be extracted to libraries.
 
-**Before**: `libs/frontend/feature-*`, `libs/frontend/ui-*`
-**After**: `apps/frontend/src/components/`
+**Rationale**:
+
+1. **Different Future Tech Stacks**: Mobile app (React Native), admin panel (Next.js), customer portal (Vue) cannot reuse React components
+2. **No Reuse Benefit**: Framework-specific code cannot be shared across different frontend applications
+3. **Simpler Architecture**: Less abstraction overhead, faster development
+4. **Backend Focus**: Backend microservices benefit from shared libraries (`libs/backend/`), but frontend apps do not
+
+**Before**: Attempted library extraction with `libs/frontend/*`
+**After**: All code in `apps/frontend/src/` (permanent decision)
 
 ## Key Patterns
 

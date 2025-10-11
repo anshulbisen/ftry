@@ -82,7 +82,7 @@ export class ReportProcessor {
     }
   }
 
-  private delay(ms: number): Promise<void> {
+  private async delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

@@ -38,7 +38,7 @@ export function validateEmail(email: string): string | undefined {
  */
 export function validatePassword(
   password: string,
-  strength: 'weak' | 'medium' | 'strong' = 'medium',
+  strength: 'medium' | 'strong' | 'weak' = 'medium',
 ): string | undefined {
   if (!password) return ValidationMessages.REQUIRED('Password');
 

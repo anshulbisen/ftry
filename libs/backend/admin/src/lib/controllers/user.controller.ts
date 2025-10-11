@@ -17,7 +17,7 @@ import { AdminPermissionGuard } from '../guards/admin-permission.guard';
 import { RequirePermissions } from '../decorators/require-permissions.decorator';
 import { UserAdminService } from '../services/user-admin.service';
 import { CreateUserDto, UpdateUserDto, UserFilterDto } from '../dto/user';
-import { type UserWithPermissions } from '@ftry/shared/types';
+import type { UserWithPermissions } from '@ftry/shared/types';
 
 /**
  * Unified User Management Controller

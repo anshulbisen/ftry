@@ -1,5 +1,6 @@
-import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import type { RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
@@ -99,7 +100,7 @@ export async function waitForAsync() {
 /**
  * Mock API response helper
  */
-export function mockApiResponse<T>(data: T, delay = 0) {
+export async function mockApiResponse<T>(data: T, delay = 0) {
   return new Promise<T>((resolve) => {
     setTimeout(() => resolve(data), delay);
   });
@@ -108,7 +109,7 @@ export function mockApiResponse<T>(data: T, delay = 0) {
 /**
  * Mock API error helper
  */
-export function mockApiError(message: string, delay = 0) {
+export async function mockApiError(message: string, delay = 0) {
   return new Promise((_, reject) => {
     setTimeout(() => reject(TestDataFactory.apiError(message)), delay);
   });

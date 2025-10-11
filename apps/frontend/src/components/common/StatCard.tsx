@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 interface StatCardProps {

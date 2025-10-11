@@ -12,7 +12,8 @@
  * Run with: nx test backend-auth --testPathPattern=integration
  */
 
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
@@ -38,8 +39,8 @@ describe('JwtStrategy RLS Integration', () => {
 
   beforeAll(async () => {
     if (!hasTestDatabase) {
-      console.log('⚠️  Skipping RLS integration tests - no TEST_DATABASE_URL configured');
-      console.log('   Set TEST_DATABASE_URL environment variable to run these tests');
+      console.warn('⚠️  Skipping RLS integration tests - no TEST_DATABASE_URL configured');
+      console.warn('   Set TEST_DATABASE_URL environment variable to run these tests');
       return;
     }
     module = await Test.createTestingModule({

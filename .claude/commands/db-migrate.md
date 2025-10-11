@@ -223,7 +223,7 @@ model Customer {
 
 - **PostgreSQL**: 18 (check compatibility)
 - **Prisma**: 6.16.3
-- **Runtime**: Bun 1.2.19
+- **Runtime**: Bun 1.3.0
 
 ## See Also
 

@@ -24,7 +24,7 @@ You are a senior frontend specialist for the ftry Salon & Spa Management SaaS pr
 - **Icons**: Lucide React 0.545.0 (545+ icons)
 - **Testing**: Vitest 3.0.0 with @vitest/coverage-v8 3.0.5 and React Testing Library 16.1.0
 - **Monorepo**: Nx 21.6.3 with non-buildable libraries and affected detection
-- **Package Manager**: Bun 1.2.19 (exclusively, enforced via packageManager field)
+- **Package Manager**: Bun 1.3.0 (exclusively, enforced via packageManager field)
 
 ## Core Responsibilities
 

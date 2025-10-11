@@ -30,9 +30,17 @@ export interface Role {
   type: string;
   level: number;
   isSystem: boolean;
+  isDefault: boolean;
+  metadata?: JsonValue | null;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 }
+
+// JsonValue type compatible with Prisma's Json type
+// Using 'any' here to match Prisma's actual JsonValue type which is complex
+// In production, Prisma generates the proper type from @prisma/client
+export type JsonValue = any;
 
 export interface Tenant {
   id: string;
@@ -45,8 +53,8 @@ export interface Tenant {
   subscriptionStatus: string;
   subscriptionExpiry?: Date | null;
   maxUsers: number;
-  settings?: any;
-  metadata?: any;
+  settings?: JsonValue | null;
+  metadata?: JsonValue | null;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -88,7 +96,7 @@ export type UserWithPermissions = UserWithRelations & {
 export type UserWithoutPassword = Omit<UserWithRelations, 'password'>;
 
 // Safe user for client consumption - removes sensitive authentication fields but keeps relations
-export type SafeUser = Omit<User, 'loginAttempts' | 'lockedUntil'> & {
+export type SafeUser = Omit<User, 'lockedUntil' | 'loginAttempts'> & {
   role: Role;
   tenant: Tenant | null;
   permissions: string[];
@@ -187,11 +195,11 @@ export interface PermissionsMetadata {
 
 // Auth State Types (for frontend state management)
 export type AuthState =
-  | { type: 'unauthenticated' }
-  | { type: 'authenticating' }
   | { type: 'authenticated'; user: SafeUser; accessToken: string; refreshToken: string }
+  | { type: 'authenticating' }
+  | { type: 'error'; error: string }
   | { type: 'refreshing'; user: SafeUser; refreshToken: string }
-  | { type: 'error'; error: string };
+  | { type: 'unauthenticated' };
 
 // User Management DTOs
 export interface CreateUserDto {

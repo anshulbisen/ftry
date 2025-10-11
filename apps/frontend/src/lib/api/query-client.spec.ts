@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { queryClient, DEFAULT_STALE_TIME, DEFAULT_CACHE_TIME } from './query-client';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 describe('Query Client Configuration', () => {
   beforeEach(() => {

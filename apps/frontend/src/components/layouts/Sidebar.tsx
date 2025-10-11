@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useUIStore, useAuthStore } from '@/store';
 import { ROUTES } from '@/constants/routes';
-import { type NavItem } from '@/types';
+import type { NavItem } from '@/types';
 import { SidebarNavItem } from './SidebarNavItem';
 import { SidebarSection } from './SidebarSection';
 
@@ -373,11 +373,11 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(ROUTES.APP.SETTINGS_PROFILE)}>
+            <DropdownMenuItem onClick={async () => navigate(ROUTES.APP.SETTINGS_PROFILE)}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate(ROUTES.APP.SETTINGS)}>
+            <DropdownMenuItem onClick={async () => navigate(ROUTES.APP.SETTINGS)}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
             </DropdownMenuItem>

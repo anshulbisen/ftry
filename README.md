@@ -23,7 +23,7 @@ bun run dev
 
 ## Tech Stack
 
-- **Runtime**: Bun 1.2.19
+- **Runtime**: Bun 1.3.0
 - **Frontend**: React 19, Vite, Tailwind CSS, shadcn/ui
 - **Backend**: NestJS 11, PostgreSQL 18 (Neon Cloud), Prisma 6, Redis 7 (Redis Cloud)
 - **Monorepo**: Nx 21.6.3

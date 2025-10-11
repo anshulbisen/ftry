@@ -1,11 +1,11 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { type PermissionsMetadata } from '@ftry/shared/types';
+import type { PermissionsMetadata } from '@ftry/shared/types';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     const permissionsMetadata = this.reflector.getAllAndOverride<PermissionsMetadata>(
@@ -18,9 +18,9 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const { user } = request;
 
-    if (!user || !user.permissions) {
+    if (!user?.permissions) {
       return false;
     }
 

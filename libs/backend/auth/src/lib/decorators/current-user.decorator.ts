@@ -1,5 +1,6 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { type UserWithPermissions } from '@ftry/shared/types';
+import type { ExecutionContext } from '@nestjs/common';
+import { createParamDecorator } from '@nestjs/common';
+import type { UserWithPermissions } from '@ftry/shared/types';
 
 /**
  * Extract the authenticated user from the request

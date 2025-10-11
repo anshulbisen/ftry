@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import { useAuthStore } from '@/store/auth.store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
@@ -73,7 +74,7 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error),
+  async (error) => Promise.reject(error),
 );
 
 /**

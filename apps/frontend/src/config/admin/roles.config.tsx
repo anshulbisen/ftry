@@ -62,8 +62,28 @@ export const roleConfig: ResourceConfig<
   // ========== TanStack Query Hooks ==========
   hooks: {
     useList: (filters) => useRoles(filters),
-    useCreate: () => useCreateRole() as any,
-    useUpdate: () => useUpdateRole() as any,
+    useCreate: () =>
+      useCreateRole() as ReturnType<typeof useCreateRole> & {
+        mutationFn: (data: {
+          name: string;
+          description?: string;
+          permissions: string[];
+          type?: string;
+          tenantId?: string;
+        }) => Promise<RoleWithStats | undefined>;
+      },
+    useUpdate: () =>
+      useUpdateRole() as ReturnType<typeof useUpdateRole> & {
+        mutationFn: (data: {
+          id: string;
+          data: {
+            name?: string;
+            description?: string;
+            permissions?: string[];
+            status?: string;
+          };
+        }) => Promise<RoleWithStats | undefined>;
+      },
     useDelete: () => useDeleteRole(),
   },
 

@@ -1,4 +1,5 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import { Component } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
 interface Props {
@@ -62,7 +63,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null });
   };
 
-  render() {
+  async render() {
     if (this.state.hasError) {
       // Render custom fallback if provided, otherwise use default
       return (

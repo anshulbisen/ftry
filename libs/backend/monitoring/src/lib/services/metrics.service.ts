@@ -23,34 +23,34 @@ export class MetricsService implements OnModuleInit {
   public readonly registry: Registry;
 
   // HTTP Metrics
-  private readonly httpRequestDuration: Histogram<string>;
-  private readonly httpRequestsTotal: Counter<string>;
+  private readonly httpRequestDuration: Histogram;
+  private readonly httpRequestsTotal: Counter;
 
   // Business Metrics
-  private readonly appointmentsCreated: Counter<string>;
-  private readonly appointmentsCancelled: Counter<string>;
-  private readonly appointmentsCompleted: Counter<string>;
-  private readonly bookingsTotal: Counter<string>;
-  private readonly revenueTotal: Counter<string>;
-  private readonly activeUsers: Gauge<string>;
-  private readonly userRegistrations: Counter<string>;
+  private readonly appointmentsCreated: Counter;
+  private readonly appointmentsCancelled: Counter;
+  private readonly appointmentsCompleted: Counter;
+  private readonly bookingsTotal: Counter;
+  private readonly revenueTotal: Counter;
+  private readonly activeUsers: Gauge;
+  private readonly userRegistrations: Counter;
 
   // Database Metrics
-  private readonly databaseQueryDuration: Histogram<string>;
-  private readonly databaseConnectionPool: Gauge<string>;
-  private readonly databaseErrors: Counter<string>;
+  private readonly databaseQueryDuration: Histogram;
+  private readonly databaseConnectionPool: Gauge;
+  private readonly databaseErrors: Counter;
 
   // Cache Metrics
-  private readonly cacheHits: Counter<string>;
-  private readonly cacheMisses: Counter<string>;
-  private readonly cacheOperationDuration: Histogram<string>;
+  private readonly cacheHits: Counter;
+  private readonly cacheMisses: Counter;
+  private readonly cacheOperationDuration: Histogram;
 
   // Authentication Metrics
-  private readonly loginAttempts: Counter<string>;
-  private readonly passwordResetRequests: Counter<string>;
+  private readonly loginAttempts: Counter;
+  private readonly passwordResetRequests: Counter;
 
   // Health Metrics
-  private readonly appHealthStatus: Gauge<string>;
+  private readonly appHealthStatus: Gauge;
 
   constructor() {
     // Create a new registry
@@ -406,7 +406,7 @@ export class MetricsService implements OnModuleInit {
    * Record cache operation duration
    */
   recordCacheOperation(
-    operation: 'get' | 'set' | 'del',
+    operation: 'del' | 'get' | 'set',
     cacheKeyPrefix: string,
     durationMs: number,
   ): void {
@@ -423,7 +423,7 @@ export class MetricsService implements OnModuleInit {
   /**
    * Record login attempt
    */
-  recordLoginAttempt(tenantId: string, status: 'success' | 'failure'): void {
+  recordLoginAttempt(tenantId: string, status: 'failure' | 'success'): void {
     this.loginAttempts.inc({ status, tenant_id: tenantId });
   }
 

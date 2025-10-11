@@ -79,7 +79,7 @@ The ftry architecture follows these core principles:
 ### Infrastructure
 
 - **Monorepo**: Nx 21.6
-- **Package Manager**: Bun 1.2.19
+- **Package Manager**: Bun 1.3.0
 - **Monitoring**: Grafana Cloud (Prometheus, Loki, Tempo)
 - **CI/CD**: GitHub Actions
 

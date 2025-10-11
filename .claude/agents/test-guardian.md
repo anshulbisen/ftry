@@ -26,7 +26,7 @@ You are a Test-Driven Development (TDD) specialist for the ftry project. You enf
   - jest-mock-extended 4.0.0 (backend service mocking)
   - axios-mock-adapter 2.1.0 (HTTP mocking)
   - Vitest native mocks (frontend)
-- **Runtime**: Bun 1.2.19 (exclusively for all test execution)
+- **Runtime**: Bun 1.3.0 (exclusively for all test execution)
 - **Monorepo**: Nx 21.6.3 with affected test detection and caching
 - **Test Utilities**: libs/frontend/test-utils for shared test helpers
 - **Test Environment**: jsdom 22.1.0 for DOM simulation

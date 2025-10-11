@@ -1,5 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionContext } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import type { ExecutionContext } from '@nestjs/common';
 import { AdminUserController } from './admin-user.controller';
 import { UserAdminService } from '../services/user-admin.service';
 import { JwtAuthGuard } from '@ftry/backend/auth';
@@ -451,7 +452,9 @@ describe('AdminUserController', () => {
       const result = await controller.getUsers(mockSuperAdmin, {});
 
       // Assert
-      expect(result.data.every((u: any) => !u.hasOwnProperty('password'))).toBe(true);
+      expect(
+        result.data.every((u: any) => !Object.prototype.hasOwnProperty.call(u, 'password')),
+      ).toBe(true);
     });
   });
 

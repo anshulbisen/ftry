@@ -14,7 +14,7 @@ Quick reference for Claude Code when working with the ftry Salon & Spa Managemen
 - **Backend**: NestJS 11 + Bun runtime + Prisma 6 + PostgreSQL 18
 - **Monorepo**: Nx 21.6.3 (non-buildable libraries)
 - **Testing**: Vitest (frontend), Jest (backend)
-- **Package Manager**: Bun 1.2.19 exclusively
+- **Package Manager**: Bun 1.3.0 exclusively
 
 **Full tech stack details**: See package.json or `.claude/TECH_STACK.md`
 

@@ -14,9 +14,11 @@ initTracing();
 
 // Now dynamically import and run the bootstrap function
 // This ensures tracing is initialized before modules are loaded
-import('./bootstrap').then(({ bootstrap }) => {
-  bootstrap().catch((error) => {
+void import('./bootstrap')
+  .then(async ({ bootstrap }) => {
+    return bootstrap();
+  })
+  .catch((error) => {
     console.error('Failed to start application:', error);
     process.exit(1);
   });
-});

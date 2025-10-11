@@ -7,14 +7,14 @@ interface UIStore {
   sidebarCollapsed: boolean;
 
   // Theme
-  theme: 'light' | 'dark' | 'system';
+  theme: 'dark' | 'light' | 'system';
 
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   toggleSidebarCollapsed: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: 'dark' | 'light' | 'system') => void;
 }
 
 export const useUIStore = create<UIStore>()(

@@ -15,7 +15,7 @@ import { PERMISSIONS_KEY } from '../decorators/require-permissions.decorator';
  */
 @Injectable()
 export class AdminPermissionGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     // Get required permissions from decorator metadata
@@ -27,11 +27,11 @@ export class AdminPermissionGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const { user } = request;
 
     // User must be authenticated (handled by JwtAuthGuard)
     // Return false instead of throwing - let JwtAuthGuard handle auth errors
-    if (!user || !user.permissions) {
+    if (!user?.permissions) {
       return false;
     }
 

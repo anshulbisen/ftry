@@ -1,4 +1,4 @@
-import { ExecutionContext } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 
 describe('LocalAuthGuard', () => {

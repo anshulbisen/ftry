@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks';
 import { getAuthErrorMessage } from '@ftry/shared/utils';
-import { ERROR_MESSAGES, DEMO_CREDENTIALS } from '@ftry/shared/constants';
+import { DEMO_CREDENTIALS } from '@ftry/shared/constants';
 
 /**
  * Login Page Component

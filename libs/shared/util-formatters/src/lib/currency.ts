@@ -1,5 +1,5 @@
 export interface CurrencyFormatOptions {
-  currency?: 'INR' | 'USD' | 'EUR' | 'GBP';
+  currency?: 'EUR' | 'GBP' | 'INR' | 'USD';
   locale?: string;
   showSymbol?: boolean;
   showDecimals?: boolean;
@@ -82,7 +82,7 @@ export function formatINR(amount: number | string, showDecimals = false): string
  */
 export function formatCurrencyCompact(
   amount: number | string,
-  options: Omit<CurrencyFormatOptions, 'minimumFractionDigits' | 'maximumFractionDigits'> = {},
+  options: Omit<CurrencyFormatOptions, 'maximumFractionDigits' | 'minimumFractionDigits'> = {},
 ): string {
   const { currency = 'INR', locale = 'en-IN' } = options;
   const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;

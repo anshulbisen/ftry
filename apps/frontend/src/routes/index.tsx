@@ -10,50 +10,52 @@ import { PermissionGate } from '@/components/admin/common';
 // Lazy load all pages for optimal bundle splitting
 // Import directly from individual files to avoid barrel export bundling
 // Public pages
-const LandingPage = lazy(() =>
+const LandingPage = lazy(async () =>
   import('@/pages/public/LandingPage').then((m) => ({ default: m.LandingPage })),
 );
-const LoginPage = lazy(() =>
+const LoginPage = lazy(async () =>
   import('@/pages/public/LoginPage').then((m) => ({ default: m.LoginPage })),
 );
-const ForgotPasswordPage = lazy(() =>
+const ForgotPasswordPage = lazy(async () =>
   import('@/pages/public/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })),
 );
 
 // Authenticated pages
-const DashboardPage = lazy(() =>
+const DashboardPage = lazy(async () =>
   import('@/pages/app/DashboardPage').then((m) => ({ default: m.DashboardPage })),
 );
-const AppointmentsPage = lazy(() =>
+const AppointmentsPage = lazy(async () =>
   import('@/pages/app/AppointmentsPage').then((m) => ({ default: m.AppointmentsPage })),
 );
-const ClientsPage = lazy(() =>
+const ClientsPage = lazy(async () =>
   import('@/pages/app/ClientsPage').then((m) => ({ default: m.ClientsPage })),
 );
-const StaffPage = lazy(() =>
+const StaffPage = lazy(async () =>
   import('@/pages/app/StaffPage').then((m) => ({ default: m.StaffPage })),
 );
-const ServicesPage = lazy(() =>
+const ServicesPage = lazy(async () =>
   import('@/pages/app/ServicesPage').then((m) => ({ default: m.ServicesPage })),
 );
-const BillingPage = lazy(() =>
+const BillingPage = lazy(async () =>
   import('@/pages/app/BillingPage').then((m) => ({ default: m.BillingPage })),
 );
-const ReportsPage = lazy(() =>
+const ReportsPage = lazy(async () =>
   import('@/pages/app/ReportsPage').then((m) => ({ default: m.ReportsPage })),
 );
-const SettingsPage = lazy(() =>
+const SettingsPage = lazy(async () =>
   import('@/pages/app/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 );
 
 // Admin pages - Using ResourceManager pattern
-const Users = lazy(() => import('@/pages/admin/Users').then((m) => ({ default: m.Users })));
-const Tenants = lazy(() => import('@/pages/admin/Tenants').then((m) => ({ default: m.Tenants })));
-const Roles = lazy(() => import('@/pages/admin/Roles').then((m) => ({ default: m.Roles })));
-const Permissions = lazy(() =>
+const Users = lazy(async () => import('@/pages/admin/Users').then((m) => ({ default: m.Users })));
+const Tenants = lazy(async () =>
+  import('@/pages/admin/Tenants').then((m) => ({ default: m.Tenants })),
+);
+const Roles = lazy(async () => import('@/pages/admin/Roles').then((m) => ({ default: m.Roles })));
+const Permissions = lazy(async () =>
   import('@/pages/admin/Permissions').then((m) => ({ default: m.Permissions })),
 );
-const PermissionsDebug = lazy(() =>
+const PermissionsDebug = lazy(async () =>
   import('@/pages/admin/PermissionsDebug').then((m) => ({ default: m.PermissionsDebug })),
 );
 

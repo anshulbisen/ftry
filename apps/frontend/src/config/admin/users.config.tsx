@@ -169,7 +169,7 @@ export const userConfig: ResourceConfig<
       },
       shouldShow: (user) => user.status === 'active',
     },
-  ] as CustomAction<UserListItem>[],
+  ] as Array<CustomAction<UserListItem>>,
 
   // ========== Search Configuration ==========
   search: {

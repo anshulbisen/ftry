@@ -71,7 +71,7 @@ export function ThemeSwitcher({ collapsed = false }: ThemeSwitcherProps) {
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           value={theme}
-          onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
+          onValueChange={(value) => setTheme(value as 'dark' | 'light' | 'system')}
         >
           <DropdownMenuRadioItem value="light">
             <Sun className="mr-2 h-4 w-4" />

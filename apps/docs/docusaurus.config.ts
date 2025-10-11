@@ -91,6 +91,35 @@ const config: Config = {
           label: 'Guides',
         },
         {
+          type: 'docSidebar',
+          sidebarId: 'operationsSidebar',
+          position: 'left',
+          label: 'Operations',
+        },
+        {
+          type: 'docSidebar',
+          sidebarId: 'referencesSidebar',
+          position: 'left',
+          label: 'References',
+        },
+        {
+          type: 'dropdown',
+          label: 'More',
+          position: 'left',
+          items: [
+            {
+              type: 'docSidebar',
+              sidebarId: 'migrationSidebar',
+              label: 'Migration Guides',
+            },
+            {
+              type: 'docSidebar',
+              sidebarId: 'developmentSidebar',
+              label: 'Development',
+            },
+          ],
+        },
+        {
           href: 'https://github.com/ftry/ftry',
           label: 'GitHub',
           position: 'right',

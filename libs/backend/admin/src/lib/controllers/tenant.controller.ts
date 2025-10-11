@@ -17,7 +17,7 @@ import { AdminPermissionGuard } from '../guards/admin-permission.guard';
 import { RequirePermissions } from '../decorators/require-permissions.decorator';
 import { TenantService } from '../services/tenant.service';
 import { CreateTenantDto, UpdateTenantDto, TenantFilterDto } from '../dto/tenant';
-import { type UserWithPermissions } from '@ftry/shared/types';
+import type { UserWithPermissions } from '@ftry/shared/types';
 
 /**
  * Unified Tenant Management Controller

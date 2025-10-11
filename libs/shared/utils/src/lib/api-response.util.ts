@@ -3,7 +3,7 @@
  * Provides consistent response formatting across the backend
  */
 
-import { ApiResponse } from '@ftry/shared/types';
+import type { ApiResponse } from '@ftry/shared/types';
 
 /**
  * Create a standardized API response

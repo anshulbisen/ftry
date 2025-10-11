@@ -6,7 +6,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaService } from '@ftry/shared/prisma';
+import type { PrismaService } from '@ftry/shared/prisma';
 
 export interface TestTenant {
   id: string;
@@ -350,7 +350,7 @@ export const rlsAssertions = {
  */
 export class MockRlsService {
   private currentTenant: string | null = null;
-  private data: Map<string, any[]> = new Map();
+  private readonly data = new Map<string, any[]>();
 
   setTenantContext(tenantId: string | null): void {
     this.currentTenant = tenantId;

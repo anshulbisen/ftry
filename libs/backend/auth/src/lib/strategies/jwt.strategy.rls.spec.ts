@@ -4,14 +4,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-import {
-  setupRlsTestDatabase,
-  RlsTestContext,
-  rlsAssertions,
-  withTenantContext,
-} from './rls-test-helpers';
+import type { RlsTestContext } from './rls-test-helpers';
+import { setupRlsTestDatabase, rlsAssertions, withTenantContext } from './rls-test-helpers';
 import { JwtStrategy } from './jwt.strategy';
-import { JwtPayload } from '@ftry/shared/types';
+import type { JwtPayload } from '@ftry/shared/types';
 
 // Environment-aware test runner
 const isCI = process.env['CI'] === 'true';
@@ -24,7 +20,7 @@ describe('RLS - JWT Strategy Integration', () => {
   beforeAll(async () => {
     if (!useRealDatabase && !isCI) {
       // Skip RLS tests in local dev without test database
-      console.log('⚠️ Skipping RLS integration tests - no test database configured');
+      console.warn('⚠️ Skipping RLS integration tests - no test database configured');
       return;
     }
 
@@ -313,7 +309,7 @@ describe('RLS - JWT Strategy Integration', () => {
 
       // Should be fast (< 50ms per operation)
       expect(avgTime).toBeLessThan(50);
-      console.log(`RLS context switch avg time: ${avgTime.toFixed(2)}ms`);
+      console.warn(`RLS context switch avg time: ${avgTime.toFixed(2)}ms`);
     });
   });
 });

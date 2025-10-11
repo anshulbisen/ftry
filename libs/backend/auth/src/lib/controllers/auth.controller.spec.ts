@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { ExecutionContext } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
@@ -22,7 +23,7 @@ function createMockRequest(
   options: {
     userAgent?: string;
     ip?: string;
-    headers?: Record<string, string | string[]>;
+    headers?: Record<string, string[] | string>;
     connection?: { remoteAddress?: string };
     socket?: { remoteAddress?: string };
   } = {},

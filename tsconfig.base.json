@@ -42,7 +42,8 @@
       "admin": ["libs/backend/admin/src/index.ts"],
       "monitoring": ["libs/backend/monitoring/src/index.ts"],
       "redis": ["libs/backend/redis/src/index.ts"],
-      "util-encryption": ["libs/shared/util-encryption/src/index.ts"]
+      "util-encryption": ["libs/shared/util-encryption/src/index.ts"],
+      "util-types": ["libs/shared/util-types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

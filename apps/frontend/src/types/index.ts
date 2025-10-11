@@ -26,7 +26,7 @@ export type {
 export interface UIState {
   sidebarOpen: boolean;
   sidebarCollapsed: boolean;
-  theme: 'light' | 'dark' | 'system';
+  theme: 'dark' | 'light' | 'system';
 }
 
 // Navigation types
@@ -34,7 +34,7 @@ export interface NavItem {
   title: string;
   href: string;
   icon?: React.ComponentType<{ className?: string }>;
-  badge?: string | number;
+  badge?: number | string;
   children?: NavItem[];
   isSection?: boolean;
 }
@@ -52,7 +52,7 @@ export interface Appointment {
   serviceId: string;
   startTime: string;
   endTime: string;
-  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'cancelled' | 'completed' | 'confirmed' | 'scheduled';
   notes?: string;
 }
 

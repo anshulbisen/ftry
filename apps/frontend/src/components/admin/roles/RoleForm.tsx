@@ -56,7 +56,7 @@ export const RoleForm: React.FC<RoleFormProps> = ({ role, open, onClose }) => {
   // Group permissions by resource
   const groupedPermissions = allPermissions.reduce(
     (acc, permission) => {
-      const resource = permission.resource;
+      const { resource } = permission;
       if (!acc[resource]) {
         acc[resource] = [];
       }

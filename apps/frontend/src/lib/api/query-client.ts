@@ -8,7 +8,7 @@
  */
 
 import { QueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 /**
  * Default stale time for queries (5 minutes)
@@ -29,12 +29,12 @@ function getErrorMessage(error: unknown): string {
   // Handle AxiosError
   if (error && typeof error === 'object' && 'isAxiosError' in error) {
     const axiosError = error as AxiosError<{
-      message?: string | string[];
+      message?: string[] | string;
       error?: string;
     }>;
 
     if (axiosError.response?.data) {
-      const data = axiosError.response.data;
+      const { data } = axiosError.response;
 
       // Handle array of messages
       if (Array.isArray(data.message)) {

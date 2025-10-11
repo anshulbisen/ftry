@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import type { Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuth } from './useAuth';
 import { useAuthStore } from '@/store';
@@ -166,7 +167,7 @@ describe('useAuth Hook', () => {
       // Act
       const { result } = renderHook(() => useAuth());
       const loginResult = await act(async () => {
-        return await result.current.login('test@example.com', 'password123');
+        return result.current.login('test@example.com', 'password123');
       });
 
       // Assert

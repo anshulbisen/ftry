@@ -76,7 +76,9 @@ Quality-first approach with comprehensive testing:
 Nx 21.6.3 monorepo with clear boundaries:
 
 - **Apps**: Deployable applications (frontend, backend, docs)
-- **Libraries**: Reusable code with enforced dependency rules
+- **Backend Libraries**: Shared NestJS modules for backend microservices
+- **Shared Libraries**: Cross-platform utilities, types, constants (used by both frontend and backend)
+- **No Frontend Libraries**: Frontend code stays in app (different future tech stacks)
 - **Non-buildable**: Libraries are code references, not build artifacts
 - **Affected Detection**: Only test/build what changed
 

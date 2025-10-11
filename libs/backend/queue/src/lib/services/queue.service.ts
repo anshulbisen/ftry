@@ -22,10 +22,10 @@ export class QueueService {
   private readonly logger = new Logger(QueueService.name);
 
   constructor(
-    @InjectQueue('email') private emailQueue: Queue,
-    @InjectQueue('notification') private notificationQueue: Queue,
-    @InjectQueue('report') private reportQueue: Queue,
-    @InjectQueue('cleanup') private cleanupQueue: Queue,
+    @InjectQueue('email') private readonly emailQueue: Queue,
+    @InjectQueue('notification') private readonly notificationQueue: Queue,
+    @InjectQueue('report') private readonly reportQueue: Queue,
+    @InjectQueue('cleanup') private readonly cleanupQueue: Queue,
   ) {}
 
   // ==================== Email Jobs ====================
@@ -157,7 +157,7 @@ export class QueueService {
    */
   async getAllQueueStats(): Promise<QueueStats[]> {
     const queues: QueueName[] = ['email', 'notification', 'report', 'cleanup'];
-    return Promise.all(queues.map((q) => this.getQueueStats(q)));
+    return Promise.all(queues.map(async (q) => this.getQueueStats(q)));
   }
 
   // ==================== Private Helpers ====================
@@ -191,7 +191,7 @@ export interface NotificationJobData {
   userId: string;
   title: string;
   message: string;
-  type: 'push' | 'sms' | 'in-app';
+  type: 'in-app' | 'push' | 'sms';
   data?: Record<string, any>;
 }
 
@@ -199,7 +199,7 @@ export interface ReportJobData {
   userId: string;
   reportType: string;
   filters: Record<string, any>;
-  format: 'pdf' | 'excel' | 'csv';
+  format: 'csv' | 'excel' | 'pdf';
 }
 
 export interface CleanupJobData {
@@ -208,7 +208,7 @@ export interface CleanupJobData {
   olderThanDays?: number;
 }
 
-export type QueueName = 'email' | 'notification' | 'report' | 'cleanup';
+export type QueueName = 'cleanup' | 'email' | 'notification' | 'report';
 
 export interface QueueStats {
   queue: QueueName;

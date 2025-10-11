@@ -302,14 +302,25 @@ Brief description of changes.
 
 See [Admin CRUD Quick Start](./admin-crud-quick-start.md) for 30-minute guide.
 
-### Creating New Library
+### Creating New Backend Library
 
 ```bash
-nx g @nx/react:library feature-name \
-  --directory=libs/frontend/feature-name \
-  --tags=scope:frontend,type:feature \
+# Backend NestJS module
+nx g @nx/nest:library feature-name \
+  --directory=libs/backend/feature-name \
+  --tags=scope:backend,type:data-access \
+  --buildable=false
+
+# Shared utility library
+nx g @nx/js:library util-name \
+  --directory=libs/shared/util-name \
+  --tags=scope:shared,type:util \
   --bundler=none
 ```
+
+:::warning No Frontend Libraries
+Do NOT create frontend libraries. Keep all frontend code in `apps/frontend/src/`.
+:::
 
 See [Nx Monorepo Architecture](../architecture/nx-monorepo.md) for library creation details.
 

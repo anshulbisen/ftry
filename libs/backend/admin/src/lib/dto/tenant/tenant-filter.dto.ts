@@ -38,7 +38,7 @@ export class TenantFilterDto {
   })
   @IsOptional()
   @IsEnum(['active', 'suspended', 'inactive'])
-  status?: 'active' | 'suspended' | 'inactive';
+  status?: 'active' | 'inactive' | 'suspended';
 
   @ApiPropertyOptional({
     description: 'Filter by subscription plan',
@@ -46,7 +46,7 @@ export class TenantFilterDto {
   })
   @IsOptional()
   @IsEnum(['free', 'basic', 'pro', 'enterprise'])
-  subscriptionPlan?: 'free' | 'basic' | 'pro' | 'enterprise';
+  subscriptionPlan?: 'basic' | 'enterprise' | 'free' | 'pro';
 
   @ApiPropertyOptional({
     description: 'Search tenants by name (partial match)',

@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import type { Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
@@ -228,7 +229,7 @@ describe('LoginPage Component', () => {
       // Arrange
       const user = userEvent.setup();
       mockLogin.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: 'user-123' }), 100)),
+        async () => new Promise((resolve) => setTimeout(() => resolve({ id: 'user-123' }), 100)),
       );
       renderLoginPage();
 
@@ -250,7 +251,7 @@ describe('LoginPage Component', () => {
       // Arrange
       const user = userEvent.setup();
       mockLogin.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: 'user-123' }), 100)),
+        async () => new Promise((resolve) => setTimeout(() => resolve({ id: 'user-123' }), 100)),
       );
       renderLoginPage();
 
@@ -474,7 +475,7 @@ describe('LoginPage Component', () => {
       // Arrange
       const user = userEvent.setup();
       mockLogin.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: 'demo-user' }), 100)),
+        async () => new Promise((resolve) => setTimeout(() => resolve({ id: 'demo-user' }), 100)),
       );
       renderLoginPage();
 
@@ -491,7 +492,7 @@ describe('LoginPage Component', () => {
       // Arrange
       const user = userEvent.setup();
       mockLogin.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ id: 'demo-user' }), 100)),
+        async () => new Promise((resolve) => setTimeout(() => resolve({ id: 'demo-user' }), 100)),
       );
       renderLoginPage();
 
@@ -565,7 +566,7 @@ describe('LoginPage Component', () => {
       const user = userEvent.setup();
       let loginPromiseResolver: ((value: unknown) => void) | null = null;
       mockLogin.mockImplementation(
-        () =>
+        async () =>
           new Promise((resolve) => {
             loginPromiseResolver = resolve;
           }),

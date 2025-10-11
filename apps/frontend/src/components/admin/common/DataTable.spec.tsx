@@ -12,7 +12,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable, DataTableProps } from './DataTable';
 
 // Test data type
@@ -70,7 +70,7 @@ const mockUsers: TestUser[] = [
 ];
 
 // Column definitions for tests
-const createColumns = (): ColumnDef<TestUser>[] => [
+const createColumns = (): Array<ColumnDef<TestUser>> => [
   {
     accessorKey: 'name',
     header: 'Name',
@@ -98,7 +98,7 @@ const createColumns = (): ColumnDef<TestUser>[] => [
 ];
 
 describe('DataTable - Rendering', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -199,7 +199,7 @@ describe('DataTable - Rendering', () => {
 });
 
 describe('DataTable - Sorting', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -361,7 +361,7 @@ describe('DataTable - Sorting', () => {
 });
 
 describe('DataTable - Search/Filtering', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -535,7 +535,7 @@ describe('DataTable - Search/Filtering', () => {
 });
 
 describe('DataTable - Pagination', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -710,7 +710,7 @@ describe('DataTable - Pagination', () => {
 });
 
 describe('DataTable - Row Selection', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -853,7 +853,7 @@ describe('DataTable - Row Selection', () => {
 });
 
 describe('DataTable - Row Click', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
   const mockOnRowClick = vi.fn();
 
   beforeEach(() => {
@@ -929,7 +929,7 @@ describe('DataTable - Row Click', () => {
 });
 
 describe('DataTable - Accessibility', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -1062,7 +1062,7 @@ describe('DataTable - Accessibility', () => {
 });
 
 describe('DataTable - Performance', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -1113,7 +1113,7 @@ describe('DataTable - Performance', () => {
 });
 
 describe('DataTable - Edge Cases', () => {
-  let columns: ColumnDef<TestUser>[];
+  let columns: Array<ColumnDef<TestUser>>;
 
   beforeEach(() => {
     columns = createColumns();
@@ -1137,7 +1137,7 @@ describe('DataTable - Edge Cases', () => {
 
   it('should handle missing column accessorKey', () => {
     // Arrange
-    const invalidColumns: ColumnDef<TestUser>[] = [
+    const invalidColumns: Array<ColumnDef<TestUser>> = [
       {
         header: 'Invalid',
         // Missing accessorKey

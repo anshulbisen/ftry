@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarNavItemProps {

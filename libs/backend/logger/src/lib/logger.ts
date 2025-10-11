@@ -46,7 +46,7 @@ export class Logger implements LoggerService {
   error(message: string, data?: Record<string, any>, context?: string): void;
   error(
     message: string,
-    errorOrTraceOrData?: Error | string | Record<string, any>,
+    errorOrTraceOrData?: Error | Record<string, any> | string,
     context?: string,
   ): void {
     const ctx = context || this.context;

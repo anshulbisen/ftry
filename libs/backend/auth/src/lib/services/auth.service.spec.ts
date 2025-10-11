@@ -1,14 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
+import type { DeepMockProxy } from 'jest-mock-extended';
+import { mockDeep } from 'jest-mock-extended';
 import { AuthService } from './auth.service';
 import { UserValidationService } from './user-validation.service';
 import { PrismaService } from '@ftry/shared/prisma';
 import { CacheService } from '@ftry/backend/cache';
 import { QueueService } from '@ftry/backend/queue';
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import type { JwtPayload } from '@ftry/shared/types';
 
 // Mock bcrypt

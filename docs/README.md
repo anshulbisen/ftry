@@ -96,7 +96,7 @@ Historical reports and reviews (for reference only):
 
 ### Prerequisites
 
-- **Bun 1.2.19+** (package manager and runtime)
+- **Bun 1.3.0+** (package manager and runtime)
 - **PostgreSQL 18+** (database)
 - **Redis 7+** (caching and background jobs)
 - **Node.js 20+** (for Nx compatibility)

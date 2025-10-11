@@ -9,7 +9,7 @@ import sys
 TOOLING_CONTEXT = """
 ## Project Standards (ftry)
 
-**Runtime**: Bun 1.2.19 exclusively (never npm/yarn/pnpm/node)
+**Runtime**: Bun 1.3.0 exclusively (never npm/yarn/pnpm/node)
 **Commands**: Use `nx` directly, not `bun nx` (Nx auto-detects bun)
 **Development**: TDD approach - tests before implementation
 **Commits**: Conventional format: `type(scope): subject`

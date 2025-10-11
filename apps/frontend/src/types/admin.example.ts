@@ -12,9 +12,18 @@
  * @see apps/frontend/src/types/admin.ts - Type definitions
  */
 
-// @ts-nocheck
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/promise-function-async */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+
+// @ts-nocheck - Documentation file with intentional placeholder code that won't compile
 
 import { Users, Building2, Shield, UserCog, XCircle, CheckCircle } from 'lucide-react';
 import type { SafeUser, Role, Tenant, Permission } from '@ftry/shared/types';
@@ -23,45 +32,36 @@ import type { TenantWithStats, RoleWithStats, UserListItem } from '@/lib/admin/a
 import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 
 // These would be imported from actual hook implementations
-declare const useUsers: () => UseQueryResult<UserListItem[] | undefined, Error>;
-declare const useCreateUser: () => UseMutationResult<UserListItem | undefined, Error, any, unknown>;
+declare const useUsers: () => UseQueryResult<UserListItem[] | undefined>;
+declare const useCreateUser: () => UseMutationResult<UserListItem | undefined, Error, any>;
 declare const useUpdateUser: () => UseMutationResult<
   UserListItem | undefined,
   Error,
-  { id: string; data: any },
-  unknown
+  { id: string; data: any }
 >;
-declare const useDeleteUser: () => UseMutationResult<void | undefined, Error, string, unknown>;
-declare const useTenants: () => UseQueryResult<TenantWithStats[] | undefined, Error>;
+declare const useDeleteUser: () => UseMutationResult<undefined | void, Error, string>;
+declare const useTenants: () => UseQueryResult<TenantWithStats[] | undefined>;
 declare const useCreateTenant: () => UseMutationResult<
   TenantWithStats | undefined,
   Error,
-  Partial<Tenant>,
-  unknown
+  Partial<Tenant>
 >;
 declare const useUpdateTenant: () => UseMutationResult<
   TenantWithStats | undefined,
   Error,
-  { id: string; data: Partial<Tenant> },
-  unknown
+  { id: string; data: Partial<Tenant> }
 >;
-declare const useDeleteTenant: () => UseMutationResult<void | undefined, Error, string, unknown>;
-declare const useSuspendTenant: () => UseMutationResult<unknown, Error, unknown, unknown>;
-declare const useActivateTenant: () => UseMutationResult<unknown, Error, unknown, unknown>;
-declare const useRoles: () => UseQueryResult<RoleWithStats[] | undefined, Error>;
-declare const useCreateRole: () => UseMutationResult<
-  RoleWithStats | undefined,
-  Error,
-  any,
-  unknown
->;
+declare const useDeleteTenant: () => UseMutationResult<undefined | void, Error, string>;
+declare const useSuspendTenant: () => UseMutationResult;
+declare const useActivateTenant: () => UseMutationResult;
+declare const useRoles: () => UseQueryResult<RoleWithStats[] | undefined>;
+declare const useCreateRole: () => UseMutationResult<RoleWithStats | undefined, Error, any>;
 declare const useUpdateRole: () => UseMutationResult<
   RoleWithStats | undefined,
   Error,
-  { id: string; data: any },
-  unknown
+  { id: string; data: any }
 >;
-declare const useDeleteRole: () => UseMutationResult<void | undefined, Error, string, unknown>;
+declare const useDeleteRole: () => UseMutationResult<undefined | void, Error, string>;
 
 // Assume these form components exist
 // import { UserForm } from '@/components/admin/users/UserForm';

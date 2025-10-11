@@ -150,7 +150,7 @@ For each agent, update:
 ## Tech Stack Expertise
 
 - **Framework**: NestJS 11.0.5 with latest decorators
-- **Runtime**: Bun 1.2.19 (exclusively)
+- **Runtime**: Bun 1.3.0 (exclusively)
 - **Database ORM**: Prisma 6.2.1
 - **Database**: PostgreSQL 16
 - **Validation**: class-validator 0.14.1

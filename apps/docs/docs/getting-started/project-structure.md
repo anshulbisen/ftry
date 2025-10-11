@@ -7,13 +7,12 @@ ftry uses an Nx monorepo architecture with clear separation between apps and lib
 ```
 ftry/
 ├── apps/
-│   ├── frontend/          # React 19 application
+│   ├── frontend/          # React 19 application (all frontend code here)
 │   ├── backend/           # NestJS 11 application
 │   └── docs/              # Docusaurus documentation
 ├── libs/
-│   ├── frontend/          # Frontend-specific libraries
-│   ├── backend/           # Backend-specific libraries
-│   └── shared/            # Shared utilities
+│   ├── backend/           # Backend-specific libraries (shared across microservices)
+│   └── shared/            # Cross-platform utilities (used by both frontend and backend)
 ├── prisma/                # Database schema and migrations
 ├── .claude/               # Claude Code agent configurations
 └── docs/                  # Legacy documentation (migrating to apps/docs)
@@ -49,27 +48,18 @@ Docusaurus site for all project documentation.
 
 ## Libraries
 
-### Library Types
+### Library Organization
 
-ftry follows Nx best practices with four library types:
+ftry uses a **scope-based** approach, not type-based extraction:
 
-| Type        | Purpose                   | Can Depend On                  |
-| ----------- | ------------------------- | ------------------------------ |
-| feature     | Business logic            | feature, ui, data-access, util |
-| ui          | Presentational components | ui, util                       |
-| data-access | API calls, state          | data-access, util              |
-| util        | Pure utilities            | util                           |
+| Scope       | Purpose                                    | Used By               |
+| ----------- | ------------------------------------------ | --------------------- |
+| **backend** | Backend NestJS modules                     | Backend microservices |
+| **shared**  | Cross-platform utilities, types, constants | Frontend AND backend  |
 
-### Frontend Libraries (`libs/frontend/`)
-
-```
-libs/frontend/
-├── feature-auth/          # Authentication feature
-├── feature-admin/         # Admin CRUD interfaces
-├── ui-components/         # Shared UI components
-├── data-access-api/       # API client (TanStack Query)
-└── util-hooks/            # Reusable React hooks
-```
+:::danger No Frontend Libraries
+Frontend code is NOT extracted into libraries. All frontend code lives in `apps/frontend/src/` because future frontend applications will use different tech stacks (React Native, Next.js, etc.) and cannot reuse React-specific code.
+:::
 
 ### Backend Libraries (`libs/backend/`)
 
@@ -85,11 +75,14 @@ libs/backend/
 
 ### Shared Libraries (`libs/shared/`)
 
+**Only cross-platform code** (no framework dependencies):
+
 ```
 libs/shared/
-├── types/                 # Shared TypeScript types
-├── util-validation/       # Validation utilities
-└── util-formatting/       # Formatting helpers
+├── types/                 # TypeScript types and interfaces
+├── constants/             # Shared constants (HTTP codes, etc.)
+├── utils/                 # Pure utility functions
+└── prisma/                # Prisma client
 ```
 
 ## Key Files

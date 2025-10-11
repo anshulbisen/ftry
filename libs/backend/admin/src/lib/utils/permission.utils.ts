@@ -1,6 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
-import { UserWithPermissions } from '@ftry/shared/types';
-import { DataScopingService } from '../services/data-scoping.service';
+import type { UserWithPermissions } from '@ftry/shared/types';
+import type { DataScopingService } from '../services/data-scoping.service';
 
 /**
  * Permission Utilities
@@ -23,7 +23,7 @@ export function requirePermission(
   scopingService: DataScopingService,
   currentUser: UserWithPermissions,
   entity: { tenantId: string | null; [key: string]: unknown },
-  operation: 'read' | 'update' | 'delete',
+  operation: 'delete' | 'read' | 'update',
   resource: string,
 ): void {
   const canAccess =

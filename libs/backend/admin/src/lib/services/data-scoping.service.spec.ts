@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { DataScopingService } from './data-scoping.service';
 import type { UserWithPermissions } from '@ftry/shared/types';
 

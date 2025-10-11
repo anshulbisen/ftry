@@ -20,7 +20,10 @@ import type { ColumnDef } from '@tanstack/react-table';
  * Generic entity type with required id field
  * All admin resources must have a string id
  */
-export type Entity = { id: string };
+export interface Entity {
+  id: string;
+  [key: string]: unknown; // Index signature for DataTable compatibility
+}
 
 /**
  * Generic filter type for query parameters
@@ -148,20 +151,20 @@ export interface ResourceHooks<
    * @param filters - Optional query parameters for filtering/searching
    * @returns TanStack Query result with entity array (may be undefined during loading)
    */
-  useList: (filters?: ResourceFilters) => UseQueryResult<TEntity[] | undefined, Error>;
+  useList: (filters?: ResourceFilters) => UseQueryResult<TEntity[] | undefined>;
 
   /**
    * Hook to fetch single entity by ID
    * @param id - Entity unique identifier
    * @returns TanStack Query result with single entity (may be undefined during loading)
    */
-  useGet?: (id: string) => UseQueryResult<TEntity | undefined, Error>;
+  useGet?: (id: string) => UseQueryResult<TEntity | undefined>;
 
   /**
    * Hook to create new entity
    * @returns TanStack Mutation result
    */
-  useCreate: () => UseMutationResult<TEntity | undefined, Error, TCreateInput, unknown>;
+  useCreate: () => UseMutationResult<TEntity | undefined, Error, TCreateInput>;
 
   /**
    * Hook to update existing entity
@@ -170,15 +173,14 @@ export interface ResourceHooks<
   useUpdate: () => UseMutationResult<
     TEntity | undefined,
     Error,
-    { id: string; data: TUpdateInput },
-    unknown
+    { id: string; data: TUpdateInput }
   >;
 
   /**
    * Hook to delete entity
    * @returns TanStack Mutation result with id parameter
    */
-  useDelete: () => UseMutationResult<void | undefined, Error, string, unknown>;
+  useDelete: () => UseMutationResult<undefined | void, Error, string>;
 
   /**
    * Optional custom mutation hooks for entity-specific operations
@@ -190,7 +192,7 @@ export interface ResourceHooks<
    * }
    * ```
    */
-  custom?: Record<string, () => UseMutationResult<unknown, Error, unknown, unknown>>;
+  custom?: Record<string, () => UseMutationResult>;
 }
 
 // ============================================================================
@@ -273,7 +275,7 @@ export interface ColumnMetadata {
  * ];
  * ```
  */
-export type TableColumn<TEntity extends Entity> = ColumnDef<TEntity, unknown> & {
+export type TableColumn<TEntity extends Entity> = ColumnDef<TEntity> & {
   /**
    * Custom metadata using TanStack Table's built-in meta property
    * Strongly typed for our admin system requirements
@@ -336,7 +338,7 @@ export interface FormConfig<TEntity extends Entity, TFormData = Partial<TEntity>
    * Dialog size variant
    * @default 'default'
    */
-  dialogSize?: 'sm' | 'default' | 'lg' | 'xl' | 'full';
+  dialogSize?: 'default' | 'full' | 'lg' | 'sm' | 'xl';
 }
 
 /**
@@ -413,7 +415,7 @@ export interface CustomAction<TEntity extends Entity> {
    * Action appearance variant
    * @default 'default'
    */
-  variant?: 'default' | 'destructive' | 'outline' | 'ghost';
+  variant?: 'default' | 'destructive' | 'ghost' | 'outline';
 
   /**
    * Where action should appear
@@ -421,7 +423,7 @@ export interface CustomAction<TEntity extends Entity> {
    * - 'bulk': In bulk actions toolbar
    * - 'header': In page header
    */
-  location: Array<'row' | 'bulk' | 'header'>;
+  location: Array<'bulk' | 'header' | 'row'>;
 
   /** Required permissions to see action */
   permissions?: AdminPermission[];
@@ -440,7 +442,7 @@ export interface CustomAction<TEntity extends Entity> {
    */
   handler: (
     entity: TEntity | TEntity[],
-    hooks: Record<string, () => UseMutationResult<unknown, Error, unknown, unknown>>,
+    hooks: Record<string, () => UseMutationResult>,
   ) => Promise<void>;
 
   /**
@@ -638,7 +640,7 @@ export interface FilterConfig {
    * - 'daterange': Date range picker
    * - 'boolean': Toggle/checkbox
    */
-  type: 'select' | 'multiselect' | 'date' | 'daterange' | 'boolean';
+  type: 'boolean' | 'date' | 'daterange' | 'multiselect' | 'select';
 
   /** Static options for select/multiselect */
   options?: FilterOption[];
@@ -661,7 +663,7 @@ export interface FilterConfig {
  */
 export interface FilterOption {
   label: string;
-  value: string | number | boolean;
+  value: boolean | number | string;
   icon?: LucideIcon;
   description?: string;
 }
@@ -821,7 +823,7 @@ export interface ResourceConfig<
    */
   table: {
     /** Column definitions */
-    columns: TableColumn<TEntity>[];
+    columns: Array<TableColumn<TEntity>>;
 
     /** Default sorting configuration */
     defaultSort?: {
@@ -857,7 +859,7 @@ export interface ResourceConfig<
   /**
    * Custom actions beyond standard CRUD
    */
-  customActions?: CustomAction<TEntity>[];
+  customActions?: Array<CustomAction<TEntity>>;
 
   /**
    * Delete validation rules
@@ -885,7 +887,7 @@ export interface ResourceConfig<
     allowDelete?: boolean;
 
     /** Custom bulk actions */
-    customActions?: CustomAction<TEntity>[];
+    customActions?: Array<CustomAction<TEntity>>;
   };
 
   /**
@@ -896,7 +898,7 @@ export interface ResourceConfig<
     enabled: boolean;
 
     /** Supported export formats */
-    formats?: Array<'csv' | 'xlsx' | 'json'>;
+    formats?: Array<'csv' | 'json' | 'xlsx'>;
 
     /** Required permissions */
     permissions?: AdminPermission[];
@@ -939,19 +941,19 @@ export interface BreadcrumbItem {
 /**
  * Extract entity type from ResourceConfig
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Utility type: 'any' required for conditional type extraction without constraint errors
 export type ExtractEntity<T> = T extends ResourceConfig<infer E, any, any> ? E : never;
 
 /**
  * Extract create input type from ResourceConfig
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Utility type: 'any' required for conditional type extraction without constraint errors
 export type ExtractCreateInput<T> = T extends ResourceConfig<any, infer C, any> ? C : never;
 
 /**
  * Extract update input type from ResourceConfig
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Utility type: 'any' required for conditional type extraction without constraint errors
 export type ExtractUpdateInput<T> = T extends ResourceConfig<any, any, infer U> ? U : never;
 
 /**

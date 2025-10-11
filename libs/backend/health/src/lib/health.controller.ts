@@ -58,10 +58,10 @@ export class HealthController {
   async check(): Promise<HealthCheckResult> {
     return this.health.check([
       // Database health
-      () => this.prismaHealth.pingCheck('database', this.prisma),
+      async () => this.prismaHealth.pingCheck('database', this.prisma),
 
       // Redis health with detailed statistics
-      () => this.redisHealth.isHealthy('redis'),
+      async () => this.redisHealth.isHealthy('redis'),
     ]);
   }
 
@@ -92,10 +92,10 @@ export class HealthController {
   async readiness(): Promise<HealthCheckResult> {
     return this.health.check([
       // Database must be available
-      () => this.prismaHealth.pingCheck('database', this.prisma),
+      async () => this.prismaHealth.pingCheck('database', this.prisma),
 
       // Redis must be available (quick ping check)
-      () => this.redisHealth.pingCheck('redis'),
+      async () => this.redisHealth.pingCheck('redis'),
     ]);
   }
 }

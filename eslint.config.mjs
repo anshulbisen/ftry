@@ -1,9 +1,11 @@
 import nx from '@nx/eslint-plugin';
+import { typescriptStrictConfig } from './eslint.typescript-strict.mjs';
 
 export default [
   ...nx.configs['flat/base'],
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
+  ...typescriptStrictConfig, // Strict TypeScript rules for zero 'any' tolerance
   {
     ignores: ['**/dist', '**/vite.config.*.timestamp*', '**/vitest.config.*.timestamp*'],
   },

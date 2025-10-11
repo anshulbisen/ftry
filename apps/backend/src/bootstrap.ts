@@ -8,7 +8,7 @@ import { AppModule } from './app/app.module';
 import { CsrfService, HttpExceptionFilter, ThrottlerExceptionFilter } from '@ftry/backend/common';
 import { MetricsInterceptor } from '@ftry/backend/monitoring';
 
-export async function bootstrap() {
+export async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
   // Apply security headers
@@ -40,9 +40,18 @@ export async function bootstrap() {
     },
     size: 64, // Token size in bytes
     ignoredMethods: ['GET', 'HEAD', 'OPTIONS'], // Don't protect safe methods
-    getCsrfTokenFromRequest: (req) => {
+    getCsrfTokenFromRequest: (req): string | undefined => {
       // Accept token from header or body (NOT from cookie - security!)
-      return req.headers['x-csrf-token'] || req.body?.csrfToken;
+      const headerToken = req.headers['x-csrf-token'];
+      const bodyToken = req.body?.csrfToken;
+
+      if (typeof headerToken === 'string') {
+        return headerToken;
+      }
+      if (typeof bodyToken === 'string') {
+        return bodyToken;
+      }
+      return undefined;
     },
   });
 

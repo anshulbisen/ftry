@@ -1,4 +1,4 @@
-import { ExecutionContext } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 describe('JwtAuthGuard', () => {

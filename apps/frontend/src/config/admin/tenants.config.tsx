@@ -30,20 +30,7 @@ import type { Tenant } from '@ftry/shared/types';
  * - Custom suspend/activate actions
  * - Prevent deletion if tenant has users
  */
-export const tenantConfig: ResourceConfig<
-  TenantWithStats,
-  {
-    name: string;
-    website?: string;
-    settings?: Record<string, unknown>;
-  },
-  {
-    name?: string;
-    website?: string;
-    settings?: Record<string, unknown>;
-    status?: string;
-  }
-> = {
+export const tenantConfig: ResourceConfig<TenantWithStats, Partial<Tenant>, Partial<Tenant>> = {
   // ========== Metadata ==========
   metadata: {
     singular: 'Tenant',
@@ -70,8 +57,8 @@ export const tenantConfig: ResourceConfig<
   // ========== TanStack Query Hooks ==========
   hooks: {
     useList: (filters) => useTenants(filters),
-    useCreate: () => useCreateTenant() as any,
-    useUpdate: () => useUpdateTenant() as any,
+    useCreate: () => useCreateTenant(),
+    useUpdate: () => useUpdateTenant(),
     useDelete: () => useDeleteTenant(),
   },
 
@@ -210,7 +197,7 @@ export const tenantConfig: ResourceConfig<
         variant: 'default',
       },
     },
-  ] as CustomAction<TenantWithStats>[],
+  ] as Array<CustomAction<TenantWithStats>>,
 
   // ========== Search Configuration ==========
   search: {

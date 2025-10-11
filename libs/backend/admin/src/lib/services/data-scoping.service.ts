@@ -17,7 +17,7 @@ interface PrismaQueryBase {
   where?: Record<string, unknown>;
   include?: Record<string, unknown>;
   select?: Record<string, unknown>;
-  orderBy?: Record<string, unknown> | Array<Record<string, unknown>>;
+  orderBy?: Array<Record<string, unknown>> | Record<string, unknown>;
   take?: number;
   skip?: number;
 }
@@ -106,7 +106,7 @@ export class DataScopingService {
   validateTenantAccess(
     user: UserWithPermissions,
     targetTenantId: string | null,
-    operation: 'create' | 'update' | 'delete',
+    operation: 'create' | 'delete' | 'update',
     resource: string,
   ): void {
     // Super admin can access any tenant

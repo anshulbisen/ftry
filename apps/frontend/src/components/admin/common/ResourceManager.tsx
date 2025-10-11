@@ -25,7 +25,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Plus, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -99,10 +99,10 @@ export function ResourceManager<
   }, [config.table.columns, permissions]);
 
   // Table columns are already pure ColumnDef objects with typed meta
-  const tableColumns = useMemo<ColumnDef<TEntity>[]>(() => {
+  const tableColumns = useMemo<Array<ColumnDef<TEntity>>>(() => {
     // Columns are already pure ColumnDef<TEntity> objects
     // TanStack Table ignores the meta property for internal processing
-    const dataColumns: ColumnDef<TEntity>[] = [...visibleColumns];
+    const dataColumns: Array<ColumnDef<TEntity>> = [...visibleColumns];
 
     // Add actions column if user has update/delete permissions or custom actions
     const hasUpdatePerm = config.permissions.update
@@ -185,7 +185,7 @@ export function ResourceManager<
             {rowCustomActions.map((action) => (
               <DropdownMenuItem
                 key={action.id}
-                onClick={() => handleCustomAction(action, entity)}
+                onClick={async () => handleCustomAction(action, entity)}
                 className={action.variant === 'destructive' ? 'text-destructive' : undefined}
               >
                 {action.icon && <action.icon className="mr-2 h-4 w-4" />}

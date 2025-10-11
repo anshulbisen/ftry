@@ -212,7 +212,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() _loginDto: LoginDto, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<ApiResponseType<Omit<AuthResponse, 'accessToken' | 'refreshToken'>>> {
-    const user = req.user;
+    const { user } = req;
 
     // Sanitize device info
     const userAgent = Array.isArray(req.headers['user-agent'])

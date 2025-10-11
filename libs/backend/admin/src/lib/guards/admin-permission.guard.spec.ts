@@ -1,5 +1,6 @@
-import { ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import type { ExecutionContext } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
+import type { Reflector } from '@nestjs/core';
 import { AdminPermissionGuard } from './admin-permission.guard';
 import type { UserWithPermissions } from '@ftry/shared/types';
 

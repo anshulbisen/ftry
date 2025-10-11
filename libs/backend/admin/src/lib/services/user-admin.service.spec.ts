@@ -1,7 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { PrismaClient } from '@prisma/client';
+import type { DeepMockProxy } from 'jest-mock-extended';
+import { mockDeep } from 'jest-mock-extended';
+import type { PrismaClient } from '@prisma/client';
 import { UserAdminService } from './user-admin.service';
 import { DataScopingService } from './data-scoping.service';
 import { PrismaService } from '@ftry/shared/prisma';

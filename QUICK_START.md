@@ -4,7 +4,7 @@ Get up and running in 5 minutes.
 
 ## Prerequisites
 
-- **Bun** (v1.2.19+): https://bun.sh/
+- **Bun** (v1.3.0+): https://bun.sh/
 
 **Note**: Docker is no longer required! Both PostgreSQL (Neon) and Redis (Redis Cloud) are cloud-hosted.
 

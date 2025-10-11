@@ -1,6 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { PrismaClient } from '@prisma/client';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import type { DeepMockProxy } from 'jest-mock-extended';
+import { mockDeep } from 'jest-mock-extended';
+import type { PrismaClient } from '@prisma/client';
 import { PermissionService } from './permission.service';
 import { PrismaService } from '@ftry/shared/prisma';
 import { NotFoundException } from '@nestjs/common';

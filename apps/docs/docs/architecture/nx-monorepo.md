@@ -18,9 +18,8 @@ ftry/
 │   └── docs/              # Docusaurus documentation
 │
 ├── libs/
-│   ├── frontend/          # Frontend-specific libraries
-│   ├── backend/           # Backend-specific libraries
-│   └── shared/            # Cross-platform utilities
+│   ├── backend/           # Backend-specific libraries (shared across backend microservices)
+│   └── shared/            # Cross-platform utilities (used by both frontend and backend)
 │
 ├── prisma/                # Database schema and migrations
 ├── .claude/               # Claude Code agent configurations
@@ -29,30 +28,35 @@ ftry/
 └── tsconfig.base.json     # Base TypeScript configuration
 ```
 
-## Library Types
+## Library Organization Strategy
 
-Nx promotes organizing libraries by type, each with specific responsibilities and dependency rules.
+ftry uses a **scope-based** approach to organize libraries, not type-based extraction.
 
-### Four Library Types
+### Two Library Scopes
 
-| Type            | Purpose                              | Can Depend On                  | Location Pattern                  |
-| --------------- | ------------------------------------ | ------------------------------ | --------------------------------- |
-| **feature**     | Smart components with business logic | feature, ui, data-access, util | `libs/[scope]/feature-[name]`     |
-| **ui**          | Presentational components            | ui, util                       | `libs/[scope]/ui-[name]`          |
-| **data-access** | API calls, state management          | data-access, util              | `libs/[scope]/data-access-[name]` |
-| **util**        | Pure utilities (no dependencies)     | util                           | `libs/shared/util-[name]`         |
+| Scope       | Purpose                                    | Used By                   | Location Pattern      |
+| ----------- | ------------------------------------------ | ------------------------- | --------------------- |
+| **backend** | Backend-specific code (NestJS modules)     | Backend microservices     | `libs/backend/[name]` |
+| **shared**  | Cross-platform utilities, types, constants | Both frontend and backend | `libs/shared/[name]`  |
 
-### Dependency Rules (Enforced by ESLint)
+### Why No Frontend Libraries?
 
-```
-feature ───┬──> ui ──────┐
-           │             │
-           ├──> data-access ──> util
-           │             │
-           └─────────────┘
-```
+**Key Architectural Decision**: We do NOT extract frontend-specific libraries because:
 
-**Rule**: Dependencies flow downward. A `ui` library cannot import from `feature`.
+1. **Different Tech Stacks**: Future frontend applications (mobile app, admin panel, customer portal) will use different technologies (React Native, Next.js, Vue, etc.)
+2. **No Reuse Benefit**: Sharing React components across different tech stacks is impossible
+3. **Simpler Architecture**: Keeping frontend code in `apps/frontend/src/` reduces abstraction overhead
+4. **Backend Reuse**: Backend microservices (NestJS) share common modules, making `libs/backend/` valuable
+
+### What Goes Where?
+
+| Code Type                         | Location                | Examples                            |
+| --------------------------------- | ----------------------- | ----------------------------------- |
+| Frontend UI components            | `apps/frontend/src/`    | React components, pages, hooks      |
+| Backend NestJS modules            | `libs/backend/[name]`   | Auth, Admin, Tenants, Monitoring    |
+| Shared types and interfaces       | `libs/shared/types`     | User, Tenant, API response types    |
+| Shared utilities (cross-platform) | `libs/shared/utils`     | Date formatting, validation helpers |
+| Shared constants                  | `libs/shared/constants` | HTTP status codes, error messages   |
 
 ## Applications
 
@@ -85,8 +89,8 @@ apps/frontend/
 └── project.json           # Nx targets
 ```
 
-:::info Recent Consolidation
-Frontend libraries were consolidated into the app directory (2025-10-11) to reduce complexity. Future extraction will be strategic based on reuse patterns.
+:::info Frontend Code Organization
+Frontend code lives directly in `apps/frontend/src/` and will NEVER be extracted to shared libraries. This is an architectural decision based on the fact that future frontend applications will use different tech stacks and cannot reuse React-specific code.
 :::
 
 ### Backend (`apps/backend/`)
@@ -142,21 +146,6 @@ apps/docs/
 
 ## Libraries
 
-### Frontend Libraries (`libs/frontend/`)
-
-**Current Status**: Consolidated into `apps/frontend/src/components/`
-
-**Future Structure** (as patterns emerge):
-
-```
-libs/frontend/
-├── feature-auth/          # Authentication UI flows
-├── feature-admin/         # Admin CRUD interfaces
-├── ui-components/         # Reusable UI components
-├── data-access-api/       # TanStack Query API client
-└── util-hooks/            # Custom React hooks
-```
-
 ### Backend Libraries (`libs/backend/`)
 
 NestJS modules organized by domain.
@@ -194,7 +183,9 @@ libs/backend/
 
 ### Shared Libraries (`libs/shared/`)
 
-Cross-platform code shared between frontend and backend.
+**Cross-platform code** shared between BOTH frontend and backend.
+
+**Purpose**: Only code that can be used by different tech stacks (TypeScript types, constants, pure utility functions).
 
 ```
 libs/shared/
@@ -203,18 +194,18 @@ libs/shared/
 │   │   ├── user.types.ts
 │   │   ├── auth.types.ts
 │   │   └── api.types.ts
-│   └── index.ts
+│   └── index.ts           # Shared by React frontend AND NestJS backend
 │
 ├── constants/             # Shared constants
 │   ├── src/lib/
 │   │   ├── auth.constants.ts
 │   │   └── validation.constants.ts
-│   └── index.ts
+│   └── index.ts           # HTTP status codes, error messages, etc.
 │
-├── utils/                 # Pure utility functions
+├── utils/                 # Pure utility functions (no framework dependencies)
 │   ├── src/lib/
-│   │   ├── formatting.ts
-│   │   └── validation.ts
+│   │   ├── formatting.ts   # Date formatting, currency, etc.
+│   │   └── validation.ts   # Email validation, phone, etc.
 │   └── index.ts
 │
 └── prisma/                # Prisma client and database access
@@ -222,6 +213,10 @@ libs/shared/
     │   └── prisma.service.ts
     └── index.ts
 ```
+
+:::tip Shared Library Rule
+Only add code to `libs/shared/` if it will be used by BOTH frontend and backend. Framework-specific code (React hooks, NestJS decorators) belongs in the app or backend libraries.
+:::
 
 ## Non-Buildable Libraries
 
@@ -271,30 +266,15 @@ Nx uses tags to enforce dependency rules via ESLint.
     "error",
     {
       "depConstraints": [
-        // Frontend can only depend on frontend + shared
-        {
-          "sourceTag": "scope:frontend",
-          "onlyDependOnLibsWithTags": ["scope:frontend", "scope:shared"]
-        },
         // Backend can only depend on backend + shared
         {
           "sourceTag": "scope:backend",
           "onlyDependOnLibsWithTags": ["scope:backend", "scope:shared"]
         },
-        // Feature can depend on ui, data-access, util
+        // Shared libraries can only depend on other shared libraries
         {
-          "sourceTag": "type:feature",
-          "onlyDependOnLibsWithTags": [
-            "type:feature",
-            "type:ui",
-            "type:data-access",
-            "type:util"
-          ]
-        },
-        // UI can only depend on ui and util
-        {
-          "sourceTag": "type:ui",
-          "onlyDependOnLibsWithTags": ["type:ui", "type:util"]
+          "sourceTag": "scope:shared",
+          "onlyDependOnLibsWithTags": ["scope:shared"]
         }
       ]
     }
@@ -310,13 +290,17 @@ Nx uses tags to enforce dependency rules via ESLint.
   "tags": ["scope:backend", "type:data-access"]
 }
 
-// libs/frontend/ui-components/project.json (future)
+// libs/shared/types/project.json
 {
-  "tags": ["scope:frontend", "type:ui"]
+  "tags": ["scope:shared", "type:util"]
 }
 ```
 
 **Enforcement**: ESLint will error if you violate dependency rules.
+
+:::warning No Frontend Library Tags
+Frontend code in `apps/frontend/` does not use library tags since it's not extracted into libraries. Module boundaries are enforced at the app level through TypeScript path aliases and code organization.
+:::
 
 ## Import Paths
 
@@ -365,13 +349,6 @@ import { UserWithPermissions } from '@ftry/shared/types';
 ### Using Nx Generators
 
 ```bash
-# React library (frontend)
-nx g @nx/react:library feature-booking \
-  --directory=libs/frontend/feature-booking \
-  --tags=scope:frontend,type:feature \
-  --bundler=none \
-  --unitTestRunner=vitest
-
 # NestJS library (backend)
 nx g @nx/nest:library tenants \
   --directory=libs/backend/tenants \
@@ -388,16 +365,21 @@ nx g @nx/js:library util-formatting \
 
 ### Library Naming Convention
 
-**Pattern**: `[scope]/[type]-[name]`
+**Pattern**: `[scope]/[name]`
 
 **Examples**:
 
-- `frontend/feature-appointments`
-- `backend/data-access-billing`
-- `shared/util-validation`
+- `backend/auth` - Authentication module
+- `backend/tenants` - Multi-tenancy module
+- `shared/types` - Shared TypeScript types
+- `shared/utils` - Pure utility functions
 
 :::warning
 Always set `--bundler=none` or `--buildable=false` to maintain non-buildable architecture.
+:::
+
+:::danger No Frontend Libraries
+Do NOT create libraries for frontend code. Keep all frontend code in `apps/frontend/src/`. Future frontend applications will use different tech stacks and cannot reuse React-specific libraries.
 :::
 
 ## Affected Commands
@@ -491,24 +473,37 @@ nx connect-to-nx-cloud
 
 ## Common Workflows
 
-### Adding a New Feature
+### Adding a New Frontend Feature
 
 ```bash
-# 1. Create feature library (if needed)
-nx g @nx/react:library feature-billing \
-  --directory=libs/frontend/feature-billing \
-  --tags=scope:frontend,type:feature
+# 1. Add components directly to apps/frontend/src/
+# - Create page in apps/frontend/src/pages/
+# - Create components in apps/frontend/src/components/
+# - Create hooks in apps/frontend/src/hooks/
 
-# 2. Add necessary UI components
+# 2. Wire up in app routing (apps/frontend/src/routes/)
 
-# 3. Add data-access for API calls (if needed)
+# 3. Run tests
+nx test frontend
 
-# 4. Wire up in app routing
+# 4. Check affected projects
+nx affected:graph
+```
 
-# 5. Run tests
-nx test frontend-feature-billing
+### Adding a New Backend Feature
 
-# 6. Check affected projects
+```bash
+# 1. Create backend library
+nx g @nx/nest:library billing \
+  --directory=libs/backend/billing \
+  --tags=scope:backend,type:data-access
+
+# 2. Implement NestJS module
+
+# 3. Run tests
+nx test backend-billing
+
+# 4. Check affected projects
 nx affected:graph
 ```
 
@@ -602,22 +597,24 @@ NX_CACHE_PROJECT_GRAPH=false nx affected --target=test
 
 ### DO ✅
 
-- Use generators to create libraries (consistency)
-- Tag libraries correctly (scope + type)
+- Use generators to create backend and shared libraries (consistency)
+- Tag libraries correctly (scope:backend or scope:shared)
 - Keep libraries small and focused
 - Export only public API through `index.ts`
 - Document complex libraries with README.md or CLAUDE.md
 - Use affected commands in CI/CD
 - Respect dependency boundaries
+- Keep frontend code in `apps/frontend/src/`
 
 ### DON'T ❌
 
 - Create buildable libraries (use non-buildable)
-- Cross scope boundaries (frontend → backend)
-- Violate type hierarchy (ui → feature)
+- Create frontend-specific libraries (keep in app)
+- Cross scope boundaries (backend → frontend or vice versa)
 - Bypass path aliases with relative imports
 - Create circular dependencies
 - Export internal implementation details
+- Extract React components to shared libraries
 
 ## Next Steps
 

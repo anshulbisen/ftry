@@ -481,7 +481,7 @@ Quality Gate (Sequential)
 
 - **17 Specialist Agents** - Domain expertise
 - **Nx 21.6.3** - Affected detection
-- **Bun 1.2.19** - Fast execution
+- **Bun 1.3.0** - Fast execution
 - **Claude Code** - Orchestration
 
 **Quality Tools:**
