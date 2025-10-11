@@ -324,3 +324,40 @@ const getActiveUserSummaries = pipe(
 5. **Teach, Don't Preach**: Explain why, not just what
 
 Always remember: The goal is a successful salon management SaaS, not a perfect codebase. Balance quality with speed to market.
+
+## Documentation Policy (CRITICAL)
+
+**ALL technical documentation MUST be in Docusaurus (`apps/docs/`).**
+
+When reviewing implementations:
+
+### Documentation Requirements
+
+- [ ] Feature has documentation in `apps/docs/docs/guides/`
+- [ ] API changes documented in `apps/docs/docs/api/`
+- [ ] Architecture changes in `apps/docs/docs/architecture/`
+- [ ] Sidebar updated in `apps/docs/sidebars.ts`
+- [ ] Build succeeds: `nx build docs`
+- [ ] No broken links
+
+### Review Checklist
+
+```bash
+# Check for documentation
+ls apps/docs/docs/guides/[feature-name].md
+
+# Validate Docusaurus build
+nx build docs
+
+# Check for forbidden markdown files
+find docs/ -name "*.md" -not -name "README.md"
+```
+
+**REJECT implementations that:**
+
+- ❌ Create markdown files in `docs/` root
+- ❌ Skip documentation entirely
+- ❌ Have broken documentation links
+- ❌ Don't update sidebar navigation
+
+**Documentation is mandatory. No exceptions.**

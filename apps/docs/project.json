@@ -1,0 +1,53 @@
+{
+  "name": "docs",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/docs",
+  "projectType": "application",
+  "tags": ["type:app", "scope:docs"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun start --port 3002",
+        "cwd": "apps/docs"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run build",
+        "cwd": "apps/docs"
+      },
+      "outputs": ["{projectRoot}/build"]
+    },
+    "serve-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun serve --port 3002",
+        "cwd": "apps/docs"
+      },
+      "dependsOn": ["build"]
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run typecheck",
+        "cwd": "apps/docs"
+      }
+    },
+    "clear": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "bun run clear",
+        "cwd": "apps/docs"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint . --ignore-pattern 'build/**' --ignore-pattern '.docusaurus/**'",
+        "cwd": "apps/docs"
+      }
+    }
+  }
+}

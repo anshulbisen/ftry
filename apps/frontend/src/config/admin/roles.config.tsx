@@ -62,8 +62,8 @@ export const roleConfig: ResourceConfig<
   // ========== TanStack Query Hooks ==========
   hooks: {
     useList: (filters) => useRoles(filters),
-    useCreate: () => useCreateRole(),
-    useUpdate: () => useUpdateRole(),
+    useCreate: () => useCreateRole() as any,
+    useUpdate: () => useUpdateRole() as any,
     useDelete: () => useDeleteRole(),
   },
 

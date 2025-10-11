@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import { AuthController } from './auth.controller';
 import { AuthService } from '../services/auth.service';
 import { LocalAuthGuard, JwtAuthGuard } from '../guards';
+import { CsrfInterceptor } from '@ftry/backend/common';
 import type {
   RegisterDto,
   LoginDto,
@@ -35,7 +36,7 @@ function createMockRequest(
   return {
     user,
     headers,
-    ip: options.ip || '192.168.1.1',
+    ip: 'ip' in options ? options.ip : '192.168.1.1',
     connection: options.connection,
     socket: options.socket,
   };
@@ -116,9 +117,10 @@ describe('AuthController', () => {
     updatedAt: new Date(),
     role: mockRole,
     tenant: mockTenant,
+    permissions: mockRole.permissions,
   };
 
-  const mockUserWithoutPassword: UserWithoutPassword = {
+  const mockUserWithoutPassword: SafeUser = {
     id: mockUserId,
     email: mockEmail,
     firstName: 'John',
@@ -128,17 +130,31 @@ describe('AuthController', () => {
     roleId: mockRoleId,
     status: 'active',
     isDeleted: false,
-    loginAttempts: 0,
-    lockedUntil: null,
     lastLogin: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
     role: mockRole,
     tenant: mockTenant,
+    permissions: mockRole.permissions,
   };
 
   const mockUserWithPermissions: UserWithPermissions = {
-    ...mockUserWithoutPassword,
+    id: mockUserId,
+    email: mockEmail,
+    firstName: 'John',
+    lastName: 'Doe',
+    phone: '+919876543210',
+    tenantId: mockTenantId,
+    roleId: mockRoleId,
+    status: 'active',
+    isDeleted: false,
+    lastLogin: new Date(),
+    loginAttempts: 0,
+    lockedUntil: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    role: mockRole,
+    tenant: mockTenant,
     password: '$2b$12$hashedpassword',
     additionalPermissions: [],
     permissions: mockRole.permissions,
@@ -190,6 +206,10 @@ describe('AuthController', () => {
           request.user = mockUserWithPermissions;
           return true;
         },
+      })
+      .overrideInterceptor(CsrfInterceptor)
+      .useValue({
+        intercept: jest.fn((context, next) => next.handle()),
       })
       .compile();
 
@@ -325,7 +345,7 @@ describe('AuthController', () => {
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
           mockUserWithPermissions,
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          'Mozilla/5.0 (Windows NT 10.0 Win64 x64)', // Semicolons removed by sanitization
           '192.168.1.1',
         );
         expect(result.success).toBe(true);
@@ -406,16 +426,16 @@ describe('AuthController', () => {
         );
       });
 
-      it('should fallback to connection.remoteAddress if ip not available', async () => {
+      it('should fallback to socket.remoteAddress if ip not available', async () => {
         // Arrange
-        const requestWithConnectionIP = createMockRequest(mockUserWithPermissions, {
+        const requestWithSocketIP = createMockRequest(mockUserWithPermissions, {
           ip: undefined,
-          connection: { remoteAddress: '172.16.0.1' },
+          socket: { remoteAddress: '172.16.0.1' },
         });
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
-        await controller.login(requestWithConnectionIP as any, mockResponse as Response, loginDto);
+        await controller.login(requestWithSocketIP as any, mockResponse as Response, loginDto);
 
         // Assert
         expect(authService.generateTokens).toHaveBeenCalledWith(
@@ -720,9 +740,14 @@ describe('AuthController', () => {
         const result = await controller.getCurrentUser(mockUserWithPermissions);
 
         // Assert
+        // Should NOT have sensitive fields
         expect(result.data).not.toHaveProperty('password');
-        expect(result.data).not.toHaveProperty('permissions');
-        expect(result.data).not.toHaveProperty('additionalPermissions');
+        expect(result.data).not.toHaveProperty('loginAttempts');
+        expect(result.data).not.toHaveProperty('lockedUntil');
+
+        // SHOULD have user-level permissions (part of SafeUser type)
+        expect(result.data).toHaveProperty('permissions');
+        expect(result.data).toHaveProperty('additionalPermissions'); // Part of User model, included in SafeUser
       });
     });
   });
@@ -835,18 +860,18 @@ describe('AuthController', () => {
         );
       });
 
-      it('should extract IP from connection.remoteAddress if req.ip not available', async () => {
+      it('should extract IP from socket.remoteAddress if req.ip not available', async () => {
         // Arrange
-        const requestWithConnectionIP = {
+        const requestWithSocketIP = {
           ...mockAuthenticatedRequest,
           ip: undefined,
-          connection: { remoteAddress: '198.51.100.1' },
+          socket: { remoteAddress: '198.51.100.1' },
         };
         authService.generateTokens.mockResolvedValue(mockTokens);
 
         // Act
         await controller.login(
-          requestWithConnectionIP as any,
+          requestWithSocketIP as any,
           mockResponse as Response,
           {} as LoginDto,
         );

@@ -149,7 +149,7 @@ This catalog provides a comprehensive reference for all specialist agents and sl
 
 ---
 
-## 📝 Slash Commands (25 Total)
+## 📝 Slash Commands (26 Total)
 
 ### Core Development Commands
 
@@ -217,13 +217,22 @@ This catalog provides a comprehensive reference for all specialist agents and sl
 #### `/update-docs [feature|new|validate|metrics]`
 
 - **Agents Used**: docs-maintainer
-- **Purpose**: Maintain and update documentation
+- **Purpose**: Maintain and update documentation (legacy command)
 - **Examples**:
   - `/update-docs` - Full audit
   - `/update-docs authentication` - Update specific feature
   - `/update-docs new user-profile` - Create new docs
   - `/update-docs validate` - Validate all docs
   - `/update-docs metrics` - Generate health metrics
+
+#### `/sync-docs [feature-name|validate]`
+
+- **Agents Used**: docs-maintainer
+- **Purpose**: Automatically synchronize Docusaurus documentation with code changes (recommended)
+- **Examples**:
+  - `/sync-docs` - Sync all documentation
+  - `/sync-docs authentication` - Sync specific feature
+  - `/sync-docs validate` - Validate only
 
 #### `/update-agents`
 
@@ -314,7 +323,7 @@ This catalog provides a comprehensive reference for all specialist agents and sl
 | Review before PR     | `/full-review`                        |
 | Fix failing tests    | `/use-agent test-guardian`            |
 | Improve performance  | `/optimize-performance`               |
-| Update documentation | `/update-docs [feature]`              |
+| Update documentation | `/sync-docs [feature]`                |
 | Add monitoring       | `/setup-monitoring`                   |
 | Create library       | `/add-library [type] [scope] [name]`  |
 | Security check       | `/security-audit`                     |
@@ -454,10 +463,10 @@ This catalog is maintained by:
 
 ---
 
-**Last Updated**: 2025-10-10
-**Version**: 1.1.0
+**Last Updated**: 2025-10-11
+**Version**: 1.2.0
 **Total Agents**: 17
-**Total Commands**: 25
+**Total Commands**: 26
 
 ---
 

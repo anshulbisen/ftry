@@ -34,12 +34,12 @@ export const tenantConfig: ResourceConfig<
   TenantWithStats,
   {
     name: string;
-    domain?: string;
+    website?: string;
     settings?: Record<string, unknown>;
   },
   {
     name?: string;
-    domain?: string;
+    website?: string;
     settings?: Record<string, unknown>;
     status?: string;
   }
@@ -57,10 +57,10 @@ export const tenantConfig: ResourceConfig<
 
   // ========== Permissions ==========
   permissions: {
-    create: ['tenants:create:all'],
+    create: ['tenants:create'],
     read: ['tenants:read:all', 'tenants:read:own'],
     update: ['tenants:update:all', 'tenants:update:own'],
-    delete: ['tenants:delete:all'],
+    delete: ['tenants:delete'],
     custom: {
       suspend: ['tenants:update:all'],
       activate: ['tenants:update:all'],
@@ -70,8 +70,8 @@ export const tenantConfig: ResourceConfig<
   // ========== TanStack Query Hooks ==========
   hooks: {
     useList: (filters) => useTenants(filters),
-    useCreate: () => useCreateTenant(),
-    useUpdate: () => useUpdateTenant(),
+    useCreate: () => useCreateTenant() as any,
+    useUpdate: () => useUpdateTenant() as any,
     useDelete: () => useDeleteTenant(),
   },
 
@@ -95,13 +95,13 @@ export const tenantConfig: ResourceConfig<
         },
       },
 
-      // Domain column
+      // Website column
       {
-        id: 'domain',
-        accessorKey: 'domain',
-        header: 'Domain',
+        id: 'website',
+        accessorKey: 'website',
+        header: 'Website',
         cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">{row.original.domain || 'N/A'}</span>
+          <span className="text-sm text-muted-foreground">{row.original.website || 'N/A'}</span>
         ),
         enableSorting: true,
         meta: {
@@ -179,7 +179,9 @@ export const tenantConfig: ResourceConfig<
       confirmation: {
         title: 'Suspend Tenant',
         description: (tenant) =>
-          `Are you sure you want to suspend "${tenant.name}"? Users will lose access.`,
+          Array.isArray(tenant)
+            ? 'Are you sure you want to suspend these tenants?'
+            : `Are you sure you want to suspend "${tenant.name}"? Users will lose access.`,
         confirmText: 'Suspend',
         cancelText: 'Cancel',
         variant: 'destructive',
@@ -199,7 +201,10 @@ export const tenantConfig: ResourceConfig<
       shouldShow: (tenant) => tenant.status === 'suspended',
       confirmation: {
         title: 'Activate Tenant',
-        description: (tenant) => `Are you sure you want to activate "${tenant.name}"?`,
+        description: (tenant) =>
+          Array.isArray(tenant)
+            ? 'Are you sure you want to activate these tenants?'
+            : `Are you sure you want to activate "${tenant.name}"?`,
         confirmText: 'Activate',
         cancelText: 'Cancel',
         variant: 'default',
@@ -210,8 +215,8 @@ export const tenantConfig: ResourceConfig<
   // ========== Search Configuration ==========
   search: {
     enabled: true,
-    placeholder: 'Search tenants by name or domain...',
-    searchableFields: ['name', 'domain'],
+    placeholder: 'Search tenants by name or website...',
+    searchableFields: ['name', 'website'],
     debounceMs: 300,
     minChars: 2,
   },

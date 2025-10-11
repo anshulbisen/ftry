@@ -44,7 +44,7 @@ describe('adminApi', () => {
         ];
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockTenants },
+          data: mockTenants,
         });
 
         const result = await adminApi.getTenants();
@@ -68,7 +68,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockTenant },
+          data: mockTenant,
         });
 
         const result = await adminApi.getTenant('tenant-1');
@@ -90,7 +90,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.post).mockResolvedValue({
-          data: { data: mockTenant },
+          data: mockTenant,
         });
 
         const result = await adminApi.createTenant(newTenant);
@@ -113,7 +113,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.patch).mockResolvedValue({
-          data: { data: mockTenant },
+          data: mockTenant,
         });
 
         const result = await adminApi.updateTenant('tenant-1', updates);
@@ -147,7 +147,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.post).mockResolvedValue({
-          data: { data: mockTenant },
+          data: mockTenant,
         });
 
         const result = await adminApi.suspendTenant('tenant-1');
@@ -169,7 +169,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.post).mockResolvedValue({
-          data: { data: mockTenant },
+          data: mockTenant,
         });
 
         const result = await adminApi.activateTenant('tenant-1');
@@ -202,7 +202,7 @@ describe('adminApi', () => {
         ];
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockUsers },
+          data: mockUsers,
         });
 
         const result = await adminApi.getUsers();
@@ -218,7 +218,7 @@ describe('adminApi', () => {
         const filters = { tenantId: 'tenant-1', status: 'active' };
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockUsers },
+          data: mockUsers,
         });
 
         await adminApi.getUsers(filters);
@@ -248,7 +248,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockUser },
+          data: mockUser,
         });
 
         const result = await adminApi.getUser('user-1');
@@ -285,7 +285,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.post).mockResolvedValue({
-          data: { data: mockUser },
+          data: mockUser,
         });
 
         const result = await adminApi.createUser(newUser);
@@ -315,7 +315,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.patch).mockResolvedValue({
-          data: { data: mockUser },
+          data: mockUser,
         });
 
         const result = await adminApi.updateUser('user-1', updates);
@@ -357,7 +357,7 @@ describe('adminApi', () => {
         ];
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockRoles },
+          data: mockRoles,
         });
 
         const result = await adminApi.getRoles();
@@ -385,7 +385,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockRole },
+          data: mockRole,
         });
 
         const result = await adminApi.getRole('role-1');
@@ -415,7 +415,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.post).mockResolvedValue({
-          data: { data: mockRole },
+          data: mockRole,
         });
 
         const result = await adminApi.createRole(newRole);
@@ -442,7 +442,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.patch).mockResolvedValue({
-          data: { data: mockRole },
+          data: mockRole,
         });
 
         const result = await adminApi.updateRole('role-1', updates);
@@ -481,7 +481,7 @@ describe('adminApi', () => {
         };
 
         vi.mocked(apiClient.apiClient.post).mockResolvedValue({
-          data: { data: mockRole },
+          data: mockRole,
         });
 
         const result = await adminApi.assignPermissions('role-1', permissions);
@@ -511,7 +511,7 @@ describe('adminApi', () => {
         ];
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockPermissions },
+          data: mockPermissions,
         });
 
         const result = await adminApi.getPermissions();
@@ -537,7 +537,7 @@ describe('adminApi', () => {
         ];
 
         vi.mocked(apiClient.apiClient.get).mockResolvedValue({
-          data: { data: mockPermissions },
+          data: mockPermissions,
         });
 
         const result = await adminApi.getPermissionsByCategory('admin');

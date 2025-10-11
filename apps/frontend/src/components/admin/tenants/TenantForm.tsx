@@ -40,8 +40,8 @@ const tenantFormSchema = z.object({
     .string()
     .min(1, 'Slug is required')
     .regex(/^[a-z0-9-]+$/, 'Invalid slug format'),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  phone: z.string().optional(),
+  description: z.string().optional(),
+  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
   subscriptionPlan: z.string().optional(),
   maxUsers: z.number().int().positive().optional(),
 });
@@ -64,8 +64,8 @@ export const TenantForm: React.FC<TenantFormProps> = ({ tenant, open, onClose })
     defaultValues: {
       name: tenant?.name || '',
       slug: tenant?.slug || '',
-      email: tenant?.email || '',
-      phone: tenant?.phone || '',
+      description: tenant?.description || '',
+      website: tenant?.website || '',
       subscriptionPlan: tenant?.subscriptionPlan || '',
       maxUsers: tenant?.maxUsers || undefined,
     },
@@ -76,8 +76,8 @@ export const TenantForm: React.FC<TenantFormProps> = ({ tenant, open, onClose })
       form.reset({
         name: tenant.name,
         slug: tenant.slug,
-        email: tenant.email || '',
-        phone: tenant.phone || '',
+        description: tenant.description || '',
+        website: tenant.website || '',
         subscriptionPlan: tenant.subscriptionPlan || '',
         maxUsers: tenant.maxUsers || undefined,
       });
@@ -157,14 +157,13 @@ export const TenantForm: React.FC<TenantFormProps> = ({ tenant, open, onClose })
 
             <FormField
               control={form.control}
-              name="email"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email (Optional)</FormLabel>
+                  <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="contact@acme.com"
+                    <Textarea
+                      placeholder="Brief description of the tenant"
                       disabled={isPending}
                       {...field}
                     />
@@ -176,14 +175,14 @@ export const TenantForm: React.FC<TenantFormProps> = ({ tenant, open, onClose })
 
             <FormField
               control={form.control}
-              name="phone"
+              name="website"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone (Optional)</FormLabel>
+                  <FormLabel>Website (Optional)</FormLabel>
                   <FormControl>
                     <Input
-                      type="tel"
-                      placeholder="+1 234 567 8900"
+                      type="url"
+                      placeholder="https://acme.com"
                       disabled={isPending}
                       {...field}
                     />

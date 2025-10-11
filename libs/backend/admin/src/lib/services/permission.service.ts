@@ -35,23 +35,18 @@ export class PermissionService {
       ORDER BY permission
     `;
 
-    // Convert to array of permission strings
-    const permissions = result.map((r) => r.permission);
-
-    // Group by resource
-    return this.groupByResource(permissions);
+    // Convert to Permission objects
+    return result.map((r) => this.parsePermissionString(r.permission));
   }
 
   /**
    * Find permissions by category/resource
    */
-  async findByCategory(
-    category: string,
-  ): Promise<Array<{ resource: string; permissions: string[] }>> {
+  async findByCategory(category: string) {
     const allPermissions = await this.findAll();
 
-    // Filter permissions that start with the category prefix
-    return allPermissions.filter((item) => item.resource === category);
+    // Filter permissions that match the category
+    return allPermissions.filter((permission) => permission.category === category);
   }
 
   /**
@@ -118,31 +113,55 @@ export class PermissionService {
   }
 
   /**
-   * Group permissions by resource
-   * Converts ["users:read:all", "users:create:own"] to
-   * {
+   * Parse permission string into Permission object
+   * Converts "users:read:all" into a structured Permission object
+   *
+   * @example
+   * "users:read:all" → {
+   *   id: "users:read:all",
+   *   name: "users:read:all",
    *   resource: "users",
-   *   permissions: ["users:read:all", "users:create:own"]
+   *   action: "read:all",
+   *   category: "users",
+   *   description: "Read all users",
+   *   createdAt: new Date(),
+   *   updatedAt: new Date()
    * }
    */
-  private groupByResource(permissions: string[]) {
-    const grouped = new Map<string, string[]>();
+  private parsePermissionString(permissionString: string) {
+    const parts = permissionString.split(':');
+    const resource = parts[0] ?? 'unknown';
+    const action = parts.slice(1).join(':') || 'unknown';
 
-    permissions.forEach((permission) => {
-      const parts = permission.split(':');
-      const resource = parts[0] ?? 'unknown'; // e.g., "users", "tenants", "roles"
+    // Generate a human-readable description
+    const description = this.generatePermissionDescription(resource, action);
 
-      if (!grouped.has(resource)) {
-        grouped.set(resource, []);
-      }
-      grouped.get(resource)!.push(permission);
-    });
-
-    // Convert to array format
-    return Array.from(grouped.entries()).map(([resource, perms]) => ({
+    return {
+      id: permissionString, // Use the permission string as ID
+      name: permissionString,
       resource,
-      permissions: perms.sort(),
-    }));
+      action,
+      category: resource, // Category is the same as resource
+      description,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  /**
+   * Generate human-readable description for a permission
+   */
+  private generatePermissionDescription(resource: string, action: string): string {
+    const resourceName = resource.charAt(0).toUpperCase() + resource.slice(1);
+    const actionParts = action.split(':');
+
+    if (actionParts.length === 2) {
+      const [verb, scope] = actionParts;
+      const scopeText = scope === 'all' ? 'all' : 'own';
+      return `${verb?.charAt(0).toUpperCase()}${verb?.slice(1)} ${scopeText} ${resourceName.toLowerCase()}`;
+    }
+
+    return `${action} on ${resourceName.toLowerCase()}`;
   }
 
   /**

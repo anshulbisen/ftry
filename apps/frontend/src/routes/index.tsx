@@ -53,6 +53,9 @@ const Roles = lazy(() => import('@/pages/admin/Roles').then((m) => ({ default: m
 const Permissions = lazy(() =>
   import('@/pages/admin/Permissions').then((m) => ({ default: m.Permissions })),
 );
+const PermissionsDebug = lazy(() =>
+  import('@/pages/admin/PermissionsDebug').then((m) => ({ default: m.PermissionsDebug })),
+);
 
 /**
  * Application router configuration
@@ -201,11 +204,20 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.APP.ADMIN_PERMISSIONS,
         element: (
-          <PermissionGate permissions={['permissions:read:all']}>
+          <PermissionGate permissions={['permissions:read']}>
             <Suspense fallback={<RouteLoadingFallback />}>
               <Permissions />
             </Suspense>
           </PermissionGate>
+        ),
+      },
+      // Temporary debug route
+      {
+        path: '/admin/permissions-debug',
+        element: (
+          <Suspense fallback={<RouteLoadingFallback />}>
+            <PermissionsDebug />
+          </Suspense>
         ),
       },
     ],

@@ -6,6 +6,8 @@ import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { AuthService } from './auth.service';
 import { UserValidationService } from './user-validation.service';
 import { PrismaService } from '@ftry/shared/prisma';
+import { CacheService } from '@ftry/backend/cache';
+import { QueueService } from '@ftry/backend/queue';
 import { PrismaClient } from '@prisma/client';
 import type { JwtPayload } from '@ftry/shared/types';
 
@@ -67,6 +69,8 @@ describe('AuthService', () => {
     firstName: 'John',
     lastName: 'Doe',
     phone: '+919876543210',
+    phoneEncrypted: null,
+    phoneHash: null,
     tenantId: mockTenantId,
     roleId: mockRoleId,
     emailVerified: true,
@@ -123,6 +127,16 @@ describe('AuthService', () => {
       checkAccountLock: jest.fn(),
     };
 
+    const mockCacheService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      del: jest.fn(),
+    };
+
+    const mockQueueService = {
+      addEmailJob: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
@@ -137,6 +151,14 @@ describe('AuthService', () => {
         {
           provide: UserValidationService,
           useValue: mockUserValidationService,
+        },
+        {
+          provide: CacheService,
+          useValue: mockCacheService,
+        },
+        {
+          provide: QueueService,
+          useValue: mockQueueService,
         },
       ],
     }).compile();

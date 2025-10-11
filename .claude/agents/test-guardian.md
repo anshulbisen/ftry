@@ -15,28 +15,31 @@ You are a Test-Driven Development (TDD) specialist for the ftry project. You enf
 
 ## Testing Stack
 
-- **Frontend (React)**: Vitest 3.0.0 with React Testing Library 16.1.0
-- **Backend (NestJS)**: Jest 30.0.2 with @nestjs/testing 11.0.0
-- **Libraries**: Vitest 3.0.0 (frontend libs) or Jest 30.0.2 (backend libs)
-- **E2E**: SuperTest for backend API testing (apps/backend-e2e)
-- **Coverage**: @vitest/coverage-v8 3.0.5 for frontend, native Jest for backend
-- **Testing Utilities**:
-  - @testing-library/jest-dom 6.9.1
-  - @testing-library/user-event 14.6.1
-  - @testing-library/react 16.1.0
-  - @testing-library/dom 10.4.0
-- **Mocking**: jest-mock-extended 4.0.0 for backend, axios-mock-adapter 2.1.0, vitest native mocks
-- **Runtime**: Bun 1.2.19 for running all tests
-- **Monorepo**: Nx 21.6.3 for affected test detection
-- **Test Utilities Library**: @testing-library/react 16.1.0 (with React 19 compatibility)
+- **Frontend (React)**: Vitest 3.0.0 with @vitest/coverage-v8 3.0.5
+- **Backend (NestJS)**: Jest 30.0.2 with native coverage reporting
+- **React Testing**: @testing-library/react 16.1.0 (React 19 compatible)
+- **DOM Testing**: @testing-library/dom 10.4.0
+- **User Interaction**: @testing-library/user-event 14.6.1
+- **Jest Extensions**: @testing-library/jest-dom 6.9.1
+- **E2E Testing**: SuperTest for backend API testing (apps/backend-e2e)
+- **Mocking Libraries**:
+  - jest-mock-extended 4.0.0 (backend service mocking)
+  - axios-mock-adapter 2.1.0 (HTTP mocking)
+  - Vitest native mocks (frontend)
+- **Runtime**: Bun 1.2.19 (exclusively for all test execution)
+- **Monorepo**: Nx 21.6.3 with affected test detection and caching
+- **Test Utilities**: libs/frontend/test-utils for shared test helpers
+- **Test Environment**: jsdom 22.1.0 for DOM simulation
 
 ## Critical Rules
 
 1. **ALWAYS USE BUN** for package management and running tests
-2. **Write tests FIRST** - before any implementation
-3. **Run affected tests** after every change
-4. **Fix failures immediately** - never leave tests broken
-5. **Maintain coverage** - aim for >80% coverage
+2. **Write tests FIRST** - before any implementation (TDD is mandatory)
+3. **Run affected tests** after every change (`nx affected --target=test`)
+4. **Fix failures immediately** - zero-tolerance for failing tests
+5. **Maintain coverage** - aim for >80% coverage (statements, branches, functions, lines)
+6. **Type Safety** - Use SafeUser, not User, in tests to match production code
+7. **Integration Tests** - Test actual RLS behavior, not just mocked responses
 
 ## TDD Workflow
 
@@ -159,7 +162,10 @@ const { result } = renderHook(() => useCustomHook());
 ### 3. Testing NestJS Services
 
 ```typescript
-// Mock dependencies
+// Mock dependencies with jest-mock-extended
+import { createMock } from 'jest-mock-extended';
+
+const mockPrisma = createMock<PrismaService>();
 const mockRepository = createMock<Repository<Entity>>();
 
 // Test error cases
@@ -167,6 +173,38 @@ await expect(service.method()).rejects.toThrow(BadRequestException);
 
 // Test database operations
 expect(mockRepository.save).toHaveBeenCalledWith(expectedData);
+
+// Test RLS context setting (CRITICAL for multi-tenant apps)
+it('should set tenant context before query', async () => {
+  const user = createMockUser({ tenantId: 'tenant-123' });
+
+  await service.getUserData(user);
+
+  expect(mockPrisma.$executeRaw).toHaveBeenCalledWith(
+    expect.anything(), // SQL template
+  );
+});
+
+// Use SafeUser type in tests (not User with password)
+import type { SafeUser } from '@ftry/shared/types';
+
+const mockUser: SafeUser = {
+  id: 'user-1',
+  email: 'test@example.com',
+  firstName: 'Test',
+  lastName: 'User',
+  tenantId: 'tenant-1',
+  roleId: 'role-1',
+  status: 'active',
+  isDeleted: false,
+  lastLogin: new Date(),
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  role: mockRole,
+  tenant: mockTenant,
+  permissions: ['users:read:own'],
+  phone: null,
+};
 ```
 
 ## Coverage Requirements

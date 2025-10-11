@@ -91,7 +91,7 @@ export class EmailProcessor {
     try {
       // TODO: Implement actual email sending
       this.logger.log(`[MOCK] Sending appointment reminder to ${to}`);
-      this.logger.log(`Appointment time: ${data.appointmentTime}`);
+      this.logger.log(`Appointment time: ${data['appointmentTime']}`);
       await this.delay(1000);
 
       this.logger.log(`Appointment reminder sent successfully to ${to}`);

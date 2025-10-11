@@ -37,23 +37,59 @@ export const permissionConfig: ResourceConfig<
 
   // ========== Permissions ==========
   permissions: {
-    read: ['permissions:read:all'],
+    read: ['permissions:read'],
     // No create, update, delete - permissions are system-defined
   },
 
   // ========== TanStack Query Hooks ==========
   hooks: {
     useList: () => useAllPermissions(),
-    // No create, update, delete hooks
-    useCreate: () => {
-      throw new Error('Permissions cannot be created via UI');
-    },
-    useUpdate: () => {
-      throw new Error('Permissions cannot be updated via UI');
-    },
-    useDelete: () => {
-      throw new Error('Permissions cannot be deleted via UI');
-    },
+    // No create, update, delete hooks - return disabled mutations
+    useCreate: () =>
+      ({
+        mutate: () => {
+          throw new Error('Permissions cannot be created via UI');
+        },
+        mutateAsync: async () => {
+          throw new Error('Permissions cannot be created via UI');
+        },
+        isIdle: true,
+        isPending: false,
+        isError: false,
+        isSuccess: false,
+        reset: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
+    useUpdate: () =>
+      ({
+        mutate: () => {
+          throw new Error('Permissions cannot be updated via UI');
+        },
+        mutateAsync: async () => {
+          throw new Error('Permissions cannot be updated via UI');
+        },
+        isIdle: true,
+        isPending: false,
+        isError: false,
+        isSuccess: false,
+        reset: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
+    useDelete: () =>
+      ({
+        mutate: () => {
+          throw new Error('Permissions cannot be deleted via UI');
+        },
+        mutateAsync: async () => {
+          throw new Error('Permissions cannot be deleted via UI');
+        },
+        isIdle: true,
+        isPending: false,
+        isError: false,
+        isSuccess: false,
+        reset: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
   },
 
   // ========== Table Configuration ==========
@@ -106,16 +142,16 @@ export const permissionConfig: ResourceConfig<
         },
       },
 
-      // Scope column
+      // Action column with badge
       {
-        id: 'scope',
-        accessorKey: 'scope',
-        header: 'Scope',
-        cell: ({ row }) => (
-          <Badge variant={row.original.scope === 'global' ? 'default' : 'secondary'}>
-            {row.original.scope || 'tenant'}
-          </Badge>
-        ),
+        id: 'action',
+        accessorKey: 'action',
+        header: 'Action',
+        cell: ({ row }) => {
+          const action = row.original.action || '';
+          const scope = action.includes(':all') ? 'all' : action.includes(':own') ? 'own' : 'other';
+          return <Badge variant={scope === 'all' ? 'default' : 'secondary'}>{action}</Badge>;
+        },
         enableSorting: true,
         meta: {
           sortable: true,

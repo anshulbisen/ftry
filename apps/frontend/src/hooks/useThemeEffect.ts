@@ -17,7 +17,7 @@ import { useUIStore } from '@/store';
  * }
  * ```
  */
-export function useThemeEffect(): void {
+export function useThemeEffect() {
   const { theme } = useUIStore();
 
   useEffect(() => {
@@ -44,5 +44,8 @@ export function useThemeEffect(): void {
 
     // Apply explicit light/dark theme
     root.classList.add(theme);
+
+    // No cleanup needed for explicit themes
+    return undefined;
   }, [theme]);
 }

@@ -147,20 +147,10 @@ export const Sidebar = memo<SidebarProps>(({ isMobile = false }) => {
       'tenants:read:own',
       'roles:read:all',
       'roles:read:own',
-      'permissions:read:all',
+      'permissions:read',
     ]);
 
-    console.log('=== Sidebar Navigation Debug ===');
-    console.log('User:', user);
-    console.log('Has admin access:', hasAdminAccess);
-    console.log('User permissions:', user?.permissions);
     const items = getNavigationItems(hasAdminAccess);
-    console.log('Navigation items count:', items.length);
-    console.log(
-      'Has Admin section:',
-      items.some((item) => item.title === 'Admin'),
-    );
-    console.log('================================');
     return items;
   }, [hasAnyPermission, user]);
 

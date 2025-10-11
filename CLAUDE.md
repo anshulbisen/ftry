@@ -66,6 +66,44 @@ test(appointments): add integration tests for booking flow
 
 **Enforcement**: commitlint via Husky pre-commit hook
 
+### Documentation Policy
+
+**CRITICAL: Docusaurus is the ONLY documentation medium**
+
+All project documentation MUST be maintained in Docusaurus (`apps/docs/`).
+
+```bash
+# Access documentation
+nx serve docs                    # http://localhost:3002
+
+# Update documentation after changes
+/update-docs [feature-name]
+
+# Create new feature documentation
+/update-docs new [feature-name]
+
+# Validate all documentation
+/update-docs validate
+```
+
+**Rules**:
+
+- ✅ All technical documentation in `apps/docs/docs/`
+- ✅ Use `/update-docs` command after feature implementation
+- ✅ Documentation updates required before PR merge
+- ❌ NEVER create standalone markdown files in `docs/` root
+- ❌ NEVER create README.md files outside package documentation
+- ❌ NEVER skip documentation updates
+
+**For Claude Code, Agents, Commands, and Hooks**:
+
+- Always create/update documentation in Docusaurus when implementing features
+- Reference Docusaurus URLs in comments and error messages
+- Update sidebar navigation when adding new sections
+- Validate documentation links before committing
+
+**Legacy docs in `docs/` are being migrated and will be removed.**
+
 ## Quick Commands
 
 ### Development
@@ -73,7 +111,8 @@ test(appointments): add integration tests for booking flow
 ```bash
 nx serve frontend        # Start React dev server (port 3000)
 nx serve backend         # Start NestJS dev server (port 3001)
-bun run dev             # Start both with auto-cleanup
+nx serve docs            # Start Docusaurus (port 3002)
+bun run dev             # Start both frontend and backend
 ```
 
 ### Quality Checks
@@ -274,33 +313,35 @@ export const UsersPage = () => <ResourceManager config={resourceConfig} />;
 
 **Rule**: Read module CLAUDE.md before making significant changes
 
-## Documentation Index
+## Documentation
 
-### Architecture & Design
+**Primary Documentation**: All technical documentation is maintained in **Docusaurus** at `apps/docs/`.
 
-- `.nx/NX_ARCHITECTURE.md` - Monorepo structure, library patterns
-- `docs/ARCHITECTURE_REVIEW_EXECUTIVE_SUMMARY.md` - Strategic decisions
-- `docs/DATABASE_ARCHITECTURE_REVIEW.md` - Complete database review
-- `docs/ADMIN_CRUD_ARCHITECTURE.md` - Admin interface architecture (93% code reduction)
+```bash
+# Access documentation site
+nx serve docs       # http://localhost:3002
+```
 
-### Security & Authentication
+### Documentation Sections
 
-- `docs/AUTHENTICATION.md` - Auth system overview
-- `docs/RLS_INTEGRATION_REPORT.md` - Row-Level Security implementation
-- `docs/CSRF_MIGRATION.md` - CSRF protection details
+**Docusaurus (`apps/docs/docs/`):**
 
-### Operations & Infrastructure
+- **Getting Started** - Introduction, quick start, project structure, workflow
+- **Architecture** - Overview, Nx monorepo, frontend, backend, database, auth, admin
+- **API Reference** - REST API endpoints and schemas
+- **Guides** - Contributing, Claude Code setup, TDD, libraries, testing
 
-- `docs/BACKUP_RESTORE_GUIDE.md` - Database backup strategy
-- `docs/GRAFANA_CLOUD_SETUP.md` - Monitoring setup
-- `docs/CLOUD_MIGRATION_SUMMARY.md` - Infrastructure decisions
+### Legacy Documentation
 
-### Development
+**Note**: Files in `docs/` are being migrated to Docusaurus and will be archived.
 
-- `.claude/WORKFLOWS.md` - Standard development workflows (TDD, feature implementation)
-- `.claude/AGENT_COMMAND_CATALOG.md` - Complete agent and command reference
-- `docs/QUICK_START.md` - Getting started guide
-- `docs/ADMIN_QUICK_START.md` - Create admin resource in 30 minutes
+**Still referenced (temporary)**:
+
+- `.nx/NX_ARCHITECTURE.md` - Monorepo architecture (migrating)
+- `.claude/WORKFLOWS.md` - Development workflows (migrating)
+- `.claude/AGENT_COMMAND_CATALOG.md` - Agent reference
+- `prisma/CLAUDE.md` - Database-specific guidance
+- `libs/backend/auth/CLAUDE.md` - Auth module guidance
 
 ## Market Context
 
@@ -315,13 +356,10 @@ export const UsersPage = () => <ResourceManager config={resourceConfig} />;
 
 ## Getting Help
 
-1. **Quick reference**: This file (CLAUDE.md)
-2. **Module specifics**: Read relevant CLAUDE.md in module directory
-3. **Workflows**: See `.claude/WORKFLOWS.md`
-4. **Commands**: See `.claude/SLASH_COMMANDS.md`
-5. **Agents**: See `.claude/AGENT_COMMAND_CATALOG.md`
-6. **Architecture**: See `.nx/NX_ARCHITECTURE.md`
-7. **Database**: See `prisma/CLAUDE.md`
+1. **Documentation Site**: `nx serve docs` (http://localhost:3002)
+2. **Quick Reference**: This file (CLAUDE.md)
+3. **Module Specifics**: Read relevant CLAUDE.md in module directory
+4. **Agents & Commands**: See `.claude/AGENT_COMMAND_CATALOG.md`
 
 ## Reference Documents
 
@@ -335,4 +373,4 @@ Strategic planning documents in `knowledge-base/`:
 
 **Last Updated**: 2025-10-11
 **Status**: Active development (Authentication feature)
-**Line Count**: ~230 (admin patterns added)
+**Documentation**: Docusaurus at `apps/docs/` (port 3002)

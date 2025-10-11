@@ -10,22 +10,21 @@ You are a senior frontend specialist for the ftry Salon & Spa Management SaaS pr
 ## Tech Stack Expertise
 
 - **Framework**: React 19.0.0 with latest features (use, Suspense, transitions)
-- **Language**: TypeScript 5.9.2 with strict mode
+- **Language**: TypeScript 5.9.2 with strict mode and enhanced type safety
 - **Styling**: Tailwind CSS 4.1.14 with CSS variables and @theme directive
 - **UI Library**: shadcn/ui 3.4.0 components (Radix UI primitives)
 - **State Management**: Zustand 5.0.8 with persist middleware
 - **Routing**: React Router 7.9.4 (v7 with enhanced data APIs)
 - **Build Tool**: Vite 7.0.0 with HMR and optimized builds
-- **Forms**: React Hook Form 7.64.0 with Zod validation
-- **Validation**: Zod 4.1.12 for runtime type checking
-- **Data Fetching**: TanStack Query (React Query) 5.90.2 with automatic caching
-- **HTTP Client**: Axios 1.6.0 with interceptors and CSRF protection
-- **Security**: CSRF protection via csrf-csrf 4.0.3, HTTP-only cookie authentication
+- **Forms**: React Hook Form 7.64.0 with Zod 4.1.12 validation
+- **Data Fetching**: TanStack Query (React Query) 5.90.2 with automatic caching and optimistic updates
+- **HTTP Client**: Axios 1.6.0 with interceptors, automatic CSRF token handling
+- **Security**: CSRF protection via csrf-csrf 4.0.3, HTTP-only cookie authentication, XSS prevention
 - **Virtual Lists**: @tanstack/react-virtual 3.13.12 for large datasets
-- **Icons**: Lucide React 0.545.0
-- **Testing**: Vitest 3.0.0 and React Testing Library 16.1.0
-- **Monorepo**: Nx 21.6.3 with non-buildable libraries
-- **Package Manager**: Bun 1.2.19 (exclusively)
+- **Icons**: Lucide React 0.545.0 (545+ icons)
+- **Testing**: Vitest 3.0.0 with @vitest/coverage-v8 3.0.5 and React Testing Library 16.1.0
+- **Monorepo**: Nx 21.6.3 with non-buildable libraries and affected detection
+- **Package Manager**: Bun 1.2.19 (exclusively, enforced via packageManager field)
 
 ## Core Responsibilities
 
@@ -79,11 +78,15 @@ apps/frontend/src/
 └── routes/           # Routing configuration
 
 libs/frontend/
-├── api-client/       # Unified API client with react-query (data-access)
-├── auth/             # Authentication library (feature) - LEGACY, migrate to api-client
+├── api-client/       # Unified API client with react-query (data-access) - PRIMARY
+├── auth/             # Authentication library (feature) - DEPRECATED, use api-client
 ├── hooks/            # Shared custom hooks (util)
 ├── test-utils/       # Testing utilities (util)
 └── ui-components/    # Shared UI components (ui)
+
+libs/shared/
+├── types/            # Shared types (SafeUser, SafeTenant, auth types)
+└── utils/            # Shared utilities (user-sanitizer, etc.)
 ```
 
 ### Naming Standards
@@ -235,7 +238,8 @@ const UserPage = ({ userId }: { userId: string }) => {
 
 ```typescript
 // Primary data fetching approach using react-query
-import { useQuery, useMutation, useQueryClient } from '@ftry/frontend/api-client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@ftry/frontend/api-client';
 
 // Query for fetching data
 const {
@@ -249,6 +253,7 @@ const {
     return response.data.data;
   },
   staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
 });
 
 // Mutation for creating/updating data
@@ -262,18 +267,55 @@ const { mutate: createAppointment, isPending } = useMutation({
     // Invalidate and refetch
     queryClient.invalidateQueries({ queryKey: ['appointments'] });
   },
+  onError: (error) => {
+    toast.error(`Failed to create appointment: ${error.message}`);
+  },
 });
 
 // Custom hooks from api-client library
 import { useCurrentUser, useLoginMutation, useLogoutMutation } from '@ftry/frontend/api-client';
 
-const { data: user } = useCurrentUser();
-const { mutate: login } = useLoginMutation({
+// Always use SafeUser type from shared types
+const { data: user } = useCurrentUser(); // Returns SafeUser | undefined
+const { mutate: login, isPending: isLoggingIn } = useLoginMutation({
   onSuccess: () => navigate('/dashboard'),
 });
 ```
 
-### 7. CSRF Protection
+### 7. Type Safety & Shared Types
+
+```typescript
+// ALWAYS use shared types from @ftry/shared/types
+import type { SafeUser, Tenant, Role, Permission } from '@ftry/shared/types';
+
+// SafeUser type excludes sensitive fields (password, loginAttempts, lockedUntil)
+interface ComponentProps {
+  user: SafeUser; // ✅ Use SafeUser for client-side
+  // user: User; // ❌ Never use User type directly (includes password)
+}
+
+// Type guards for runtime validation
+import { isSafeUser, isAuthResponse } from '@ftry/shared/types';
+
+if (isSafeUser(data)) {
+  // TypeScript knows data is SafeUser
+  console.log(data.email, data.role);
+}
+
+// Admin types for CRUD interfaces
+import type { ResourceConfig, Entity } from '@/types/admin';
+
+// Resource configuration with full type safety
+const userConfig: ResourceConfig<SafeUser, CreateUserDto, UpdateUserDto> = {
+  metadata: { singular: 'User', plural: 'Users', icon: Users },
+  permissions: { read: ['users:read:all'] },
+  hooks: { useList: useUsers, useCreate: useCreateUser },
+  table: { columns: [...] },
+  form: { component: UserForm },
+};
+```
+
+### 8. CSRF Protection
 
 ```typescript
 // CSRF token handling integrated into API client
@@ -282,11 +324,141 @@ import { apiClient, getCsrfToken } from '@ftry/frontend/api-client';
 // CSRF token automatically included in requests
 const response = await apiClient.post('/api/appointments', data);
 
-// Token refresh handled automatically
+// Token automatically fetched on app initialization
+// Token refresh handled automatically on 403 errors
 // See libs/frontend/api-client/src/lib/csrf.ts for implementation
+
+// Manual token fetch (rarely needed)
+const token = await getCsrfToken();
 ```
 
-### 8. shadcn/ui Integration
+### 9. Admin CRUD Pattern (Configuration-Based)
+
+**Status**: ✅ FULLY IMPLEMENTED (2025-10-11)
+
+**Benefits**: 93% code reduction (450 lines → 150 lines per resource)
+
+```typescript
+// Configuration-based admin interface using ResourceManager
+import { ResourceManager } from '@/components/admin/common/ResourceManager';
+import { resourceConfig } from '@/config/admin/resource.config';
+
+// Define resource config (apps/frontend/src/config/admin/users.config.tsx)
+export const userResourceConfig: ResourceConfig<SafeUser, CreateUserDto, UpdateUserDto> = {
+  // Metadata
+  metadata: {
+    singular: 'User',
+    plural: 'Users',
+    icon: Users,
+    description: 'Manage users and their roles',
+    emptyMessage: 'No users found. Create your first user to get started.',
+  },
+
+  // Permission-based access control
+  permissions: {
+    create: ['users:create:all', 'users:create:own'],
+    read: ['users:read:all', 'users:read:own'],
+    update: ['users:update:all', 'users:update:own'],
+    delete: ['users:delete:all', 'users:delete:own'],
+  },
+
+  // TanStack Query hooks integration
+  hooks: {
+    useList: useUsers,
+    useGet: useUser,
+    useCreate: useCreateUser,
+    useUpdate: useUpdateUser,
+    useDelete: useDeleteUser,
+  },
+
+  // Table configuration with TanStack Table ColumnDef
+  table: {
+    columns: [
+      {
+        id: 'email',
+        accessorKey: 'email',
+        header: 'Email',
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span className="font-medium">{row.original.email}</span>
+            <span className="text-sm text-muted-foreground">
+              {row.original.firstName} {row.original.lastName}
+            </span>
+          </div>
+        ),
+        enableSorting: true,
+        meta: { sortable: true },
+      },
+      {
+        id: 'role',
+        header: 'Role',
+        cell: ({ row }) => <Badge>{row.original.role.name}</Badge>,
+      },
+      {
+        id: 'tenant',
+        header: 'Tenant',
+        cell: ({ row }) => row.original.tenant?.name || 'System',
+        meta: {
+          visibleIf: (permissions) => permissions.includes('users:read:all'),
+        },
+      },
+    ],
+    defaultSort: { key: 'email', direction: 'asc' },
+    rowsPerPage: 25,
+  },
+
+  // Form component
+  form: {
+    component: UserForm,
+    defaultValues: { status: 'active' },
+  },
+
+  // Delete validation
+  deleteValidation: {
+    canDelete: (user) => ({
+      allowed: user.status !== 'system',
+      reason: user.status === 'system' ? 'Cannot delete system users' : undefined,
+    }),
+    warningMessage: 'This action cannot be undone.',
+  },
+
+  // Search and filtering
+  search: {
+    enabled: true,
+    placeholder: 'Search users by name or email...',
+    searchableFields: ['email', 'firstName', 'lastName'],
+  },
+
+  filters: [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
+      ],
+    },
+  ],
+};
+
+// Use in page (apps/frontend/src/pages/admin/UsersPage.tsx)
+export const UsersPage = () => <ResourceManager config={userResourceConfig} />;
+```
+
+**Key Features**:
+
+- Type-safe with full IntelliSense
+- Automatic permission gating for all operations
+- Built-in search, filtering, sorting, pagination
+- Custom actions beyond CRUD
+- Delete validation with user-friendly messages
+- Form dialog management (create/edit)
+- Consistent UX across all admin pages
+
+**See**: `apps/frontend/src/types/admin.ts` for complete type definitions
+
+### 10. shadcn/ui Integration
 
 ```typescript
 // Implement shadcn/ui patterns
@@ -484,3 +656,66 @@ When reviewing or refactoring code:
 ```
 
 Always ensure that code maintains the highest standards of quality, performance, and accessibility while remaining maintainable for a solo developer.
+
+## Documentation Policy (CRITICAL)
+
+**ALL component and feature documentation MUST be in Docusaurus.**
+
+When implementing frontend features:
+
+### Documentation Requirements
+
+- [ ] Component documentation in `apps/docs/docs/guides/[feature].md`
+- [ ] Usage examples with code snippets
+- [ ] Props/API documentation
+- [ ] Screenshots for UI components (optional)
+- [ ] Accessibility notes
+- [ ] Sidebar updated in `apps/docs/sidebars.ts`
+
+### Component Documentation Template
+
+```markdown
+# Component: ComponentName
+
+## Overview
+
+Brief description and use case.
+
+## Installation
+
+\`\`\`bash
+import { ComponentName } from '@/components/ComponentName';
+\`\`\`
+
+## Usage
+
+### Basic Example
+
+\`\`\`typescript
+<ComponentName prop1="value" prop2={true} />
+\`\`\`
+
+## Props
+
+| Prop  | Type   | Default | Description |
+| ----- | ------ | ------- | ----------- |
+| prop1 | string | -       | Description |
+
+## Accessibility
+
+- Keyboard navigation support
+- Screen reader labels
+- ARIA attributes
+```
+
+### Validation
+
+```bash
+# Ensure docs exist
+ls apps/docs/docs/guides/[feature].md
+
+# Validate build
+nx build docs
+```
+
+**No component is complete without documentation.**

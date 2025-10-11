@@ -38,17 +38,15 @@ export interface Tenant {
   id: string;
   name: string;
   slug: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  city?: string | null;
-  state?: string | null;
-  country?: string | null;
-  postalCode?: string | null;
-  subscriptionPlan?: string | null;
-  subscriptionStatus?: string | null;
-  subscriptionEndDate?: Date | null;
-  maxUsers?: number | null;
+  description?: string | null;
+  logo?: string | null;
+  website?: string | null;
+  subscriptionPlan: string;
+  subscriptionStatus: string;
+  subscriptionExpiry?: Date | null;
+  maxUsers: number;
+  settings?: any;
+  metadata?: any;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -93,6 +91,7 @@ export type UserWithoutPassword = Omit<UserWithRelations, 'password'>;
 export type SafeUser = Omit<User, 'loginAttempts' | 'lockedUntil'> & {
   role: Role;
   tenant: Tenant | null;
+  permissions: string[];
 };
 
 // JWT related

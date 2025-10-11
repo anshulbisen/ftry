@@ -4,40 +4,21 @@
  * Tests the custom hook for checking user permissions
  */
 
-import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePermissions } from './usePermissions';
-import * as apiClient from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
 import type { SafeUser } from '@ftry/shared/types';
 
-// Mock the api-client
-vi.mock('@/lib/api', async () => {
-  const actual = await vi.importActual('@/lib/api');
-  return {
-    ...actual,
-    useCurrentUser: vi.fn(),
-  };
-});
+// Mock the auth store
+vi.mock('@/store/auth.store', () => ({
+  useAuthStore: vi.fn(),
+}));
 
 describe('usePermissions', () => {
-  let queryClient: QueryClient;
-
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
-      },
-    });
     vi.clearAllMocks();
   });
-
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
 
   const mockUser: SafeUser = {
     id: '1',
@@ -75,37 +56,43 @@ describe('usePermissions', () => {
 
   describe('hasPermission', () => {
     it('should return true when user has the permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn((p) => mockUser.role.permissions.includes(p)),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasPermission('users:read:all')).toBe(true);
     });
 
     it('should return false when user does not have the permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn((p) => mockUser.role.permissions.includes(p)),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasPermission('tenants:delete')).toBe(false);
     });
 
     it('should return false when user is undefined', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        isError: true,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: undefined,
+        hasPermission: vi.fn(() => false),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasPermission('users:read:all')).toBe(false);
     });
@@ -113,13 +100,17 @@ describe('usePermissions', () => {
 
   describe('hasAnyPermission', () => {
     it('should return true when user has at least one permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn((perms) =>
+          perms.some((p: string) => mockUser.role.permissions.includes(p)),
+        ),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(
         result.current.hasAnyPermission(['tenants:delete', 'users:read:all', 'users:create:all']),
@@ -127,25 +118,29 @@ describe('usePermissions', () => {
     });
 
     it('should return false when user has none of the permissions', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(() => false),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasAnyPermission(['tenants:delete', 'users:delete:all'])).toBe(false);
     });
 
     it('should return false for empty array', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(() => false),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasAnyPermission([])).toBe(false);
     });
@@ -153,13 +148,17 @@ describe('usePermissions', () => {
 
   describe('hasAllPermissions', () => {
     it('should return true when user has all permissions', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn((perms) =>
+          perms.every((p: string) => mockUser.role.permissions.includes(p)),
+        ),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(
         result.current.hasAllPermissions(['users:read:all', 'users:create:own', 'roles:read:own']),
@@ -167,25 +166,29 @@ describe('usePermissions', () => {
     });
 
     it('should return false when user is missing at least one permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(() => false),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasAllPermissions(['users:read:all', 'tenants:delete'])).toBe(false);
     });
 
     it('should return true for empty array', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(() => true),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.hasAllPermissions([])).toBe(true);
     });
@@ -193,37 +196,47 @@ describe('usePermissions', () => {
 
   describe('canAccessResource', () => {
     it('should return true when user has :all permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn((perms) =>
+          perms.some((p: string) => mockUser.role.permissions.includes(p)),
+        ),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.canAccessResource('users', 'read')).toBe(true);
     });
 
     it('should return true when user has :own permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn((perms) =>
+          perms.some((p: string) => mockUser.role.permissions.includes(p)),
+        ),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.canAccessResource('users', 'create')).toBe(true);
     });
 
     it('should return false when user has neither :all nor :own permission', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(() => false),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.canAccessResource('tenants', 'delete')).toBe(false);
     });
@@ -231,13 +244,15 @@ describe('usePermissions', () => {
 
   describe('permissions array', () => {
     it('should return user permissions array', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: mockUser,
-        isLoading: false,
-        isError: false,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: mockUser,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.permissions).toEqual([
         'users:read:all',
@@ -247,13 +262,15 @@ describe('usePermissions', () => {
     });
 
     it('should return empty array when user is undefined', () => {
-      vi.mocked(apiClient.useCurrentUser).mockReturnValue({
-        data: undefined,
-        isLoading: false,
-        isError: true,
+      vi.mocked(useAuthStore).mockReturnValue({
+        user: undefined,
+        hasPermission: vi.fn(),
+        hasAnyPermission: vi.fn(),
+        hasAllPermissions: vi.fn(),
+        isSuperAdmin: false,
       } as any);
 
-      const { result } = renderHook(() => usePermissions(), { wrapper });
+      const { result } = renderHook(() => usePermissions());
 
       expect(result.current.permissions).toEqual([]);
     });

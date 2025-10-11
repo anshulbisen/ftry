@@ -15,8 +15,8 @@ import {
   UserWithPermissions,
   TokenResponse,
   JwtPayload,
-  UserWithoutPassword,
   RefreshTokenWithUser,
+  SafeUser,
 } from '@ftry/shared/types';
 import {
   TOKEN_CONFIG,
@@ -25,7 +25,6 @@ import {
   AUTH_ERRORS,
   FIELD_LIMITS,
 } from '@ftry/shared/constants';
-import { removePassword } from '@ftry/shared/utils';
 import { UserValidationService } from './user-validation.service';
 import { CacheService } from '@ftry/backend/cache';
 import { QueueService } from '@ftry/backend/queue';
@@ -50,7 +49,7 @@ export class AuthService {
   /**
    * Register a new user with proper validation
    */
-  async register(dto: RegisterDto): Promise<UserWithoutPassword> {
+  async register(dto: RegisterDto): Promise<SafeUser> {
     this.logger.log(`Registering new user: ${dto.email}`);
 
     // Validate registration
@@ -83,8 +82,13 @@ export class AuthService {
       });
 
     this.logger.log(`User registered successfully: ${user.id}`);
-    // Type assertion is safe here because removePassword returns the correct type
-    return removePassword(user) as UserWithoutPassword;
+
+    // Create SafeUser - remove password and sensitive auth fields, add permissions
+    const { password, loginAttempts, lockedUntil, ...safeFields } = user;
+    return {
+      ...safeFields,
+      permissions: user.role?.permissions || [],
+    };
   }
 
   /**

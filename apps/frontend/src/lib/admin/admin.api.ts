@@ -50,7 +50,7 @@ export const tenantApi = {
    * Create new tenant (super admin only)
    */
   create: async (data: Partial<Tenant>) => {
-    const response = await apiClient.post<Tenant>(`${ADMIN_BASE}/tenants`, data);
+    const response = await apiClient.post<TenantWithStats>(`${ADMIN_BASE}/tenants`, data);
     return response.data;
   },
 
@@ -58,7 +58,7 @@ export const tenantApi = {
    * Update tenant
    */
   update: async (id: string, data: Partial<Tenant>) => {
-    const response = await apiClient.patch<Tenant>(`${ADMIN_BASE}/tenants/${id}`, data);
+    const response = await apiClient.patch<TenantWithStats>(`${ADMIN_BASE}/tenants/${id}`, data);
     return response.data;
   },
 
@@ -192,7 +192,7 @@ export const roleApi = {
     type?: string;
     tenantId?: string;
   }) => {
-    const response = await apiClient.post<Role>(`${ADMIN_BASE}/roles`, data);
+    const response = await apiClient.post<RoleWithStats>(`${ADMIN_BASE}/roles`, data);
     return response.data;
   },
 
@@ -208,7 +208,7 @@ export const roleApi = {
       status?: string;
     },
   ) => {
-    const response = await apiClient.patch<Role>(`${ADMIN_BASE}/roles/${id}`, data);
+    const response = await apiClient.patch<RoleWithStats>(`${ADMIN_BASE}/roles/${id}`, data);
     return response.data;
   },
 
