@@ -17,8 +17,8 @@ Complete reference for all custom slash commands in the ftry project.
 | **Architecture**  | `/architecture-review`, `/nx-graph`                               |
 | **Monitoring**    | `/setup-monitoring`                                               |
 | **Security**      | `/security-audit`                                                 |
-| **Documentation** | `/update-docs`, `/update-commands`                                |
-| **Maintenance**   | `/sync-repo`, `/update-agents`                                    |
+| **Documentation** | `/update-docs`, `/sync-docs`, `/update-commands`                  |
+| **Maintenance**   | `/sync-all`, `/sync-repo`, `/update-agents`                       |
 | **Agents**        | `/use-agent`, `/manage-agents`                                    |
 | **Git**           | `/commit`                                                         |
 | **Optimization**  | `/optimize-performance`, `/optimize-claude`                       |
@@ -482,9 +482,45 @@ Add monitoring instrumentation for Grafana Cloud.
 
 ## Documentation & Maintenance
 
+### `/sync-docs [scope]`
+
+**Synchronize Docusaurus documentation with codebase changes** using the docs-maintainer specialist.
+
+**Usage:**
+
+```bash
+/sync-docs                    # Sync all documentation
+/sync-docs [feature-name]     # Sync specific feature docs
+/sync-docs validate           # Only validate existing docs
+```
+
+**Actions:**
+
+- Analyze recent code changes
+- Create docs for new features
+- Update docs for modified features
+- Fix broken internal links
+- Update code examples
+- Validate all API documentation
+- Update sidebar navigation
+- Build and validate Docusaurus
+
+**When to Run:**
+
+- ✅ After ANY code changes
+- ✅ Before creating pull requests
+- ✅ After API modifications
+- ✅ After feature implementation
+
+**Output:** Documentation sync report with files created/updated
+
+**See:** `.claude/commands/sync-docs.md` for complete workflow
+
+---
+
 ### `/update-docs [scope]`
 
-Maintain and update documentation.
+Maintain and update documentation (legacy - use `/sync-docs` for Docusaurus sync).
 
 **Usage:**
 
@@ -550,9 +586,67 @@ Update all agent configurations to reflect current project state.
 
 ## Repository Maintenance
 
+### `/sync-all [scope]`
+
+**Complete codebase synchronization** - orchestrates all quality, documentation, configuration, and review tasks.
+
+**Usage:**
+
+```bash
+/sync-all                      # Full synchronization (recommended)
+/sync-all authentication       # Specific feature scope
+/sync-all frontend             # Frontend only
+/sync-all --skip-review        # Skip review phase
+/sync-all --only config,docs   # Run only specific phases
+/sync-all --dry-run            # Show what would be done
+```
+
+**Orchestrated Execution Strategy:**
+
+**Phase 1: Quality Gate (Sequential - Must Pass)**
+
+- `/check-all` - Format → Lint → TypeCheck → Test
+
+**Phase 2: Configuration Sync (Parallel)**
+
+- `/update-agents` - Agent configurations
+- `/update-commands` - Slash commands
+- Type synchronization (typescript-guardian)
+
+**Phase 3: Documentation Sync (Sequential)**
+
+- `/sync-docs` - Docusaurus documentation update
+
+**Phase 4: Comprehensive Review (Parallel)**
+
+- All review specialists (9 agents in parallel)
+- Architecture, frontend, backend, database
+- Code quality, performance, duplication, boundaries
+- Security audit
+
+**Phase 5: Final Validation (Sequential)**
+
+- Build validation (all apps)
+- Test validation (all tests)
+
+**When to Run:**
+
+- ✅ After completing any feature
+- ✅ Before creating a pull request
+- ✅ After merging major changes
+- ✅ Before releases
+
+**Performance:** ~4-6 minutes (parallel execution, 80% faster than sequential)
+
+**Output:** Unified comprehensive report with prioritized action items
+
+**See:** `.claude/commands/sync-all.md` for complete orchestration details
+
+---
+
 ### `/sync-repo [scope]`
 
-Complete repository synchronization after feature implementation.
+Complete repository synchronization after feature implementation (legacy - superseded by `/sync-all`).
 
 **Usage:**
 
@@ -723,8 +817,8 @@ Orchestrate multiple agents for complex workflows.
 # 1. Implement feature with TDD
 /implement-feature "appointment-booking" fullstack
 
-# 2. Complete repository synchronization
-/sync-repo
+# 2. Complete codebase synchronization
+/sync-all
 
 # 3. Commit and push
 /commit "feat(appointments): add booking feature" --push
@@ -778,8 +872,8 @@ Orchestrate multiple agents for complex workflows.
 # 3. Test migration
 /test-first UserRepository integration
 
-# 4. Update docs
-/update-docs database
+# 4. Sync documentation and validate
+/sync-all database
 
 # 5. Commit
 /commit "feat(db): add user preferences table"
@@ -797,13 +891,10 @@ Orchestrate multiple agents for complex workflows.
 # 3. Optimize frontend
 /quick-fix frontend
 
-# 4. Validate improvements
-/check-all
+# 4. Sync and validate everything
+/sync-all
 
-# 5. Document changes
-/update-docs performance
-
-# 6. Commit
+# 5. Commit
 /commit "perf(app): optimize query performance"
 ```
 
@@ -883,7 +974,7 @@ Orchestrate multiple agents for complex workflows.
 
 ### Maintenance
 
-`/sync-repo`, `/update-docs`, `/update-commands`, `/update-agents`
+`/sync-all`, `/sync-docs`, `/update-agents`, `/update-commands`
 
 ### Deployment Prep
 
@@ -895,12 +986,13 @@ Orchestrate multiple agents for complex workflows.
 
 1. **TDD First**: Always `/test-first` before implementing
 2. **Quality Gates**: Run `/check-all` before every commit
-3. **Atomic Commits**: Use `/commit` with conventional format
-4. **Review Often**: `/full-review` before PRs
-5. **Document Changes**: `/update-docs` after features
-6. **Fix Boundaries**: `/fix-boundaries --check` regularly
-7. **Monitor Performance**: `/optimize-performance` periodically
-8. **Security First**: `/security-audit` before production
+3. **Sync Everything**: Run `/sync-all` after every feature completion
+4. **Atomic Commits**: Use `/commit` with conventional format
+5. **Review Often**: `/full-review` (or `/sync-all`) before PRs
+6. **Document Changes**: `/sync-docs` after features (or use `/sync-all`)
+7. **Fix Boundaries**: `/fix-boundaries --check` regularly
+8. **Monitor Performance**: `/optimize-performance` periodically
+9. **Security First**: `/security-audit` before production (included in `/sync-all`)
 
 ---
 
@@ -915,7 +1007,7 @@ Orchestrate multiple agents for complex workflows.
 
 ---
 
-**Last Updated**: 2025-10-10
-**Total Commands**: 25
-**Total Agents**: 17
+**Last Updated**: 2025-10-11
+**Total Commands**: 27
+**Total Agents**: 18
 **Status**: Active Development (Authentication Feature)

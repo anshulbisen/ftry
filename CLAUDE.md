@@ -76,20 +76,20 @@ All project documentation MUST be maintained in Docusaurus (`apps/docs/`).
 # Access documentation
 nx serve docs                    # http://localhost:3002
 
-# Update documentation after changes
-/update-docs [feature-name]
+# Synchronize documentation with codebase
+/sync-docs [feature-name]
 
-# Create new feature documentation
-/update-docs new [feature-name]
+# Complete codebase synchronization (docs + configs + review)
+/sync-all
 
-# Validate all documentation
-/update-docs validate
+# Validate documentation only
+/sync-docs validate
 ```
 
 **Rules**:
 
 - ✅ All technical documentation in `apps/docs/docs/`
-- ✅ Use `/update-docs` command after feature implementation
+- ✅ Use `/sync-docs` or `/sync-all` after feature implementation
 - ✅ Documentation updates required before PR merge
 - ❌ NEVER create standalone markdown files in `docs/` root
 - ❌ NEVER create README.md files outside package documentation
@@ -153,8 +153,11 @@ nx affected --target=test   # Test only affected projects
 # Write tests first for specific component
 /test-first "BookingForm" unit
 
-# Sync repository after feature (docs, agents, commands, review, security)
-/sync-repo
+# Complete codebase synchronization (RECOMMENDED after features)
+/sync-all
+
+# Sync documentation only
+/sync-docs authentication
 
 # Run comprehensive review only
 /full-review
@@ -164,9 +167,6 @@ nx affected --target=test   # Test only affected projects
 
 # Quality checks and commit
 /commit "feat(scope): description"
-
-# Update documentation only
-/update-docs authentication
 ```
 
 ### Agent Specializations
